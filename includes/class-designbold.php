@@ -57,7 +57,7 @@ class DesignBold
 	 */
 	protected $version;
 
-	function __construct(argument)
+	public function __construct()
 	{
 		if ( defined( 'DESIGNBOLD_VERSION' ) ) {
 			$this->version = DESIGNBOLD_VERSION;
