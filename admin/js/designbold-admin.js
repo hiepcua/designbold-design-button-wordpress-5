@@ -1,73 +1,523 @@
-var l10n = wp.media.view.l10n;
-wp.media.view.MediaFrame.Select.prototype.browseRouter = function( routerView ) {
-    routerView.set({
-        upload: {
-            text:     l10n.uploadFilesTitle,
-            priority: 20
-        },
-        browse: {
-            text:     l10n.mediaLibraryTitle,
-            priority: 40
-        },
-        my_tab: {
-            text:     "DesignBold",
-            priority: 60
-        }
-    });
-};
+(function($){
+    'use strict';
 
-jQuery(document).ready(function($){
-    if ( wp.media ) {
-        wp.media.view.Modal.prototype.on( "open", function() {
-            if($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "My tab")
-                doMyTabContent();
-        });
-        $(wp.media).on('click', '.media-router a.media-menu-item', function(e){
-            if(e.target.innerText == "My tab")
-                doMyTabContent();
-        });
-    }
-});
+    var DesignBoldWordPressAdmin = (function() {
 
-function doMyTabContent() {
-    var html = '<div id="myTabContent">';
-    //My tab content here
-    html += '</div>';
-    $('body .media-modal-content .media-frame-content')[0].innerHTML = html;
-}
+        /**
+         * Properties
+         * 
+         */
 
-var container   = document.getElementById('myTabContent');
+        /**
+         * __compiledWordPressPath
+         * 
+         * @access  private
+         * @var     String (default: '/app/static/compiled/wordPress.js')
+         */
+        var __compiledWordPressPath = '/app/static/compiled/wordPress.js';
 
-// h is short for hyperscript and it makes everything a little bit easier
-var h = React.createElement;
+        /**
+         * __filenames
+         * 
+         * @access  private
+         * @var     Object
+         */
+        var __filenames = {
+            admin: 'stencil-admin.js',
+            wordPressUtils: 'WordPressUtils.js'
+        };
+
+        /**
+         * __hosts
+         * 
+         * @access  private
+         * @var     Object
+         */
+        var __hosts = {
+            local: 'local.getstencil.com',
+            dev: 'dev.getstencil.com',
+            prod: 'getstencil.com'
+        };
+
+        /**
+         * __messages
+         * 
+         * @access  private
+         * @var     Object
+         */
+        var __messages = {
+            failed: 'Could not load Stencil. Please contact ' +
+                'support@getstencil.com for help.'
+        };
+
+        /**
+         * __overrideIntervalCheckDuration
+         * 
+         * @access  private
+         * @var     Number (default: 10)
+         */
+        var __overrideIntervalCheckDuration = 10;
+
+        /**
+         * __timeout
+         * 
+         * @access  private
+         * @var     Number (default: 5000)
+         */
+        var __timeout = 5000;
+
+        /**
+         * Methods
+         * 
+         */
+
+        /**
+         * __attempt
+         * 
+         * @access  private
+         * @param   Function closure
+         * @return  mixed|null
+         */
+        var __attempt = function(closure) {
+            try {
+                var response = closure();
+                return response;
+            } catch (err) {
+            }
+            return null;
+        };
+
+        /**
+         * __callbacks
+         * 
+         * @access  private
+         * @var     Object
+         */
+        var __callbacks = {
+
+            /**
+             * error
+             * 
+             * @access  private
+             * @return  Boolean
+             */
+            error: function() {
+                var editPostPage = window.location.pathname.indexOf('wp-admin/post.php') !== -1;
+                if (editPostPage === false) {
+                    return false;
+                }
+                var msg = __messages.failed;
+                alert(msg);
+                return true;
+            },
+
+            /**
+             * success
+             * 
+             * @access  private
+             * @return  void
+             */
+            success: function() {
+                window.StencilWordPressUtils.init($);
+            }
+        };
+
+        /**
+         * __getHost
+         * 
+         * @access  private
+         * @return  String
+         */
+        var __getHost = function() {
+            var role = __getRole(),
+                hosts = __hosts,
+                host = hosts[role];
+            return host;
+        };
+
+        /**
+         * __getHour
+         * 
+         * @access  private
+         * @return  String
+         */
+        var __getHour = function() {
+            var currentDate = new Date(),
+                hour = currentDate.getDate() + '/'
+                    + (currentDate.getMonth() + 1)  + '/'
+                    + currentDate.getFullYear() + '@'
+                    + currentDate.getHours() + ':'
+                    + '00:'
+                    + '00';
+            return hour;
+        };
+
+        /**
+         * __getLocalWordPressScriptPath
+         * 
+         * @access  private
+         * @return  null|String
+         */
+        var __getLocalWordPressScriptPath = function() {
+            var role = __getRole(),
+                path = __attempt(__getPluginWordPressUtilsPath);
+            if (path === null) {
+                return null;
+            }
+            if (role === 'local') {
+                path = __compiledWordPressPath;
+            }
+            var queryString = __getQueryString();
+            path = (path) + '?' + (queryString);
+            return path;
+        };
+
+        /**
+         * __getPluginVersion
+         * 
+         * @access  private
+         * @return  null|String
+         */
+        var __getPluginVersion = function() {
+            var adminFilename = __filenames.admin,
+                src = $('script[src*="' + (adminFilename) + '"]').first().attr('src'),
+                matches = src.match(/ver=([0-9\.]+)/);
+            if (matches === null) {
+                return null;
+            }
+            var version = matches.pop();
+            return version;
+        };
+
+        /**
+         * __getPluginWordPressUtilsPath
+         * 
+         * @access  private
+         * @return  String
+         */
+        var __getPluginWordPressUtilsPath = function() {
+            var adminFilename = __filenames.admin,
+                wordPressUtilsFilename = __filenames.wordPressUtils,
+                src = $('script[src*="' + (adminFilename) + '"]').first().attr('src');
+            src = src.replace(adminFilename, wordPressUtilsFilename);
+            var host = window.location.host;
+            src = src.split(host).pop();
+            return src;
+        };
+
+        /**
+         * __getQueryData
+         * 
+         * @access  private
+         * @return  Object
+         */
+        var __getQueryData = function() {
+            var queryData = {
+                hour: __getHour(),
+                timezone: __getTimezone(),
+                version: __getPluginVersion()
+            };
+            if (queryData.version === null) {
+                delete queryData.version;
+            }
+            return queryData;
+        };
+
+        /**
+         * __getQueryString
+         * 
+         * @access  private
+         * @return  String
+         */
+        var __getQueryString = function() {
+            var queryData = __getQueryData(),
+                queryString = jQuery.param(queryData);
+            return queryString;
+        };
+
+        /**
+         * __getRemoteWordPressScriptURL
+         * 
+         * @access  private
+         * @return  String
+         */
+        var __getRemoteWordPressScriptURL = function() {
+            var host = __getHost(),
+                path = __compiledWordPressPath,
+                queryString = __getQueryString(),
+                url = 'https://' + (host) + (path) + '?' + (queryString);
+            return url;
+        };
+
+        /**
+         * __getRole
+         * 
+         * @access  private
+         * @return  String
+         */
+        var __getRole = function() {
+            if (window.location.host === 'local.getstencil.com') {
+                var role = 'local';
+                return role;
+            }
+            if (window.location.host === 'dev.getstencil.com') {
+                var role = 'dev';
+                return role;
+            }
+            var role = 'prod';
+            return role;
+        };
+
+        /**
+         * __getTimezone
+         * 
+         * @see     https://stackoverflow.com/questions/1954397/detect-timezone-abbreviation-using-javascript
+         * @see     https://stackoverflow.com/a/34405528/115025
+         * @access  private
+         * @return  String
+         */
+        var __getTimezone = function() {
+            var currentDate = new Date(),
+                lang = 'en-us',
+                localeTimeString = currentDate.toLocaleTimeString(lang, {
+                    timeZoneName: 'short'
+                }),
+                pieces = localeTimeString.split(' '),
+                timezone = 'unknown';
+            if (pieces.length > 2) {
+                timezone = pieces[2];
+            }
+            return timezone;
+        };
+
+        /**
+         * __loadLocalWordPressScript
+         * 
+         * @access  private
+         * @param   Function error
+         * @return  void
+         */
+        var __loadLocalWordPressScript = function(error) {
+            var path = __getLocalWordPressScriptPath(),
+                url = path,
+                success = __callbacks.success;
+            if (path === null) {
+                error();
+            } else {
+                __loadScript(url, success, error);
+            }
+        };
+
+        /**
+         * __loadRemoteWordPressScript
+         * 
+         * @access  private
+         * @param   Function error
+         * @return  void
+         */
+        var __loadRemoteWordPressScript = function(error) {
+            var url = __getRemoteWordPressScriptURL(),
+                success = __callbacks.success;
+            __loadScript(url, success, error);
+        };
+
+        /**
+         * __loadScript
+         * 
+         * @see     https://api.jquery.com/jquery.getscript/
+         * @access  private
+         * @param   String url
+         * @param   Function success
+         * @param   Function error
+         * @return  void
+         */
+        var __loadScript = function(url, success, error) {
+            $.ajax({
+                cache: true,
+                dataType: 'script',
+                error: error,
+                success: success,
+                timeout: __timeout,
+                url: url
+            });
+        };
+
+        /**
+         * __loadWordPressScript
+         * 
+         * @access  private
+         * @return  void
+         */
+        var __loadWordPressScript = function() {
+            var error = function() {
+                var error = __callbacks.error;
+                __loadLocalWordPressScript(error);
+            };
+            __loadRemoteWordPressScript(error);
+        };
+
+        /**
+         * __override
+         * 
+         * @access  private
+         * @var     Object
+         */
+        var __override = {
+
+            /**
+             * browseRouter
+             * 
+             * @access  private
+             * @return  void
+             */
+            browseRouter: function() {
+                var scope = 'window.wp.media.view.MediaFrame.Select.prototype.browseRouter',
+                    callback = function() {
+                        window.wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
+                            StencilWordPressUtils.manage.browseRouter(
+                                routerView
+                            );
+                        };
+                    };
+                __override.reference(scope, callback);
+            },
+
+            /**
+             * modalOpen
+             * 
+             * @access  private
+             * @return  void
+             */
+            modalOpen: function() {
+                var scope = 'window.wp.media.view.Modal.prototype.on',
+                    callback = function() {
+                        window.wp.media.view.Modal.prototype.on(
+                            'open',
+                            function() {
+                                StencilWordPressUtils.manage.modalOpen(this);
+                            }
+                        );
+                    };
+                __override.reference(scope, callback);
+            },
+
+            /**
+             * reference
+             * 
+             * @access  private
+             * @param   String scope
+             * @param   Function callback
+             * @return  void
+             */
+            reference: function(scope, callback) {
+                var interval,
+                    check = function() {
+                        if (__validReference(scope) === true) {
+                            clearInterval(interval);
+                            callback();
+                        }
+                    },
+                    intervalCheckDuration = __overrideIntervalCheckDuration;
+                interval = setInterval(check, intervalCheckDuration);
+            }
+        };
+
+        /**
+         * _validReference
+         * 
+         * @access  private
+         * @param   String str
+         * @return  Boolean
+         */
+        var __validReference = function(str) {
+            var pieces = str.split('.'),
+                index,
+                reference = window;
+            for (index in pieces) {
+                if (isNaN(index) === true) {
+                    continue;
+                }
+                reference = reference[pieces[index]];
+                if (reference === undefined) {
+                    return false;
+                }
+                if (reference === null) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        // Public
+        return {
+
+            /**
+             * Methods
+             * 
+             */
+
+            /**
+             * init
+             * 
+             * @note    The override methods are required to be called in this
+             *          (stencil-admin.js) file rather than the loaded
+             *          WordPressUtils.js file because in the newest WordPress
+             *          (5.0.3), the "Set featured image" in the right column
+             *          of a post/page is actually instantiated before the
+             *          WordPressUtils.js file is loaded.
+             *          This means that the prototype objects/references aren't
+             *          overridden at the time that specific MediaFrame view
+             *          objects are made, which results in the code not properly
+             *          running in time.
+             * @access  public
+             * @return  void
+             */
+            init: function() {
+                __override.browseRouter();
+                __override.modalOpen();
+                $(document).ready(function($) {
+                    __loadWordPressScript();
+                });
+            }
+        };
+    })();
 
 
-// This is how we inherit methods like setState from React.Component
-Timer.prototype = Object.create(React.Component.prototype);
+    // var l10n = wp.media.view.l10n;
+    // wp.media.view.MediaFrame.Select.prototype.browseRouter = function( routerView ) {
+    //     routerView.set({
+    //         upload: {
+    //             text:     l10n.uploadFilesTitle,
+    //             priority: 20
+    //         },
+    //         browse: {
+    //             text:     l10n.mediaLibraryTitle,
+    //             priority: 40
+    //         },
+    //         my_tab: {
+    //             text:     "DesignBold",
+    //             priority: 60
+    //         }
+    //     });
+    // };
 
-function Timer(props) {
-    React.Component.constructor.call(this);
-    var self = this;
+    // if ( wp.media ) {
+    //     wp.media.view.Modal.prototype.on( "open", function() {
+    //         if($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "My tab")
+    //             doMyTabContent();
+    //     });
+    //     $(wp.media).on('click', '.media-router a.media-menu-item', function(e){
+    //         if(e.target.innerText == "My tab")
+    //             doMyTabContent();
+    //     });
+    // }
 
-    self.state = { seconds: 0 };
+})(jQuery);
 
-    self.tick = function() {
-        self.setState(function(prevState) {
-            return { seconds: prevState.seconds + 1 };
-        });
-    };
 
-    self.componentDidMount = function() {
-        self.interval = setInterval(self.tick, 1000);
-    };
-
-    self.componentWillUnmount = function() {
-        clearInterval(self.interval);
-    };
-
-    self.render = function() {
-        return h('div', null, 'seconds: ', self.state.seconds);
-    }
-}
-
-ReactDOM.render(h(Timer), container);
+// function doMyTabContent() {
+//     var html = '<div id="myTabContent">';
+//     //My tab content here
+//     html += '</div>';
+//     $('body .media-modal-content .media-frame-content')[0].innerHTML = html;
+// }
