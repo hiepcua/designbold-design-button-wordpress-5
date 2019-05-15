@@ -1,6 +1,52 @@
-(function($){
+
+/**
+ * (anonymous)
+ * 
+ * @author  Oliver Nassar <oliver@getstencil.com>
+ * @link    https://getstencil.com/stencil-for-wordpress
+ * @see     TurtlePHP/application/webroot/blog/wp-config.php
+ * @see     TurtlePHP/application/webroot/blog/wp-includes/js/dist/edit-post.js
+ * @see     TurtlePHP/application/webroot/blog/wp-includes/js/dist/editor.js
+ * @see     TurtlePHP/application/webroot/blog/wp-includes/js/dist/media-views.js
+ * @see     https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
+ * @version 1.11.2
+ */
+(function($) {
     'use strict';
 
+    /**
+     * All of the code for your admin-facing JavaScript source
+     * should reside in this file.
+     *
+     * Note: It has been assumed you will write jQuery code here, so the
+     * $ function reference has been prepared for usage within the scope
+     * of this function.
+     *
+     * This enables you to define handlers, for when the DOM is ready:
+     *
+     * $(function() {
+     *
+     * });
+     *
+     * When the window is loaded:
+     *
+     * $( window ).load(function() {
+     *
+     * });
+     *
+     * ...and/or other possibilities.
+     *
+     * Ideally, it is not considered best practise to attach more than a
+     * single DOM-ready or window-load handler for a particular page.
+     * Although scripts in the WordPress core, Plugins and Themes may be
+     * practising this, we should strive to set a better example in our own work.
+    */
+
+    /**
+     * DesignBoldWordPressAdmin
+     * 
+     * @abstract
+     */
     var DesignBoldWordPressAdmin = (function() {
 
         /**
@@ -23,7 +69,7 @@
          * @var     Object
          */
         var __filenames = {
-            admin: 'stencil-admin.js',
+            admin: 'designbold-admin.js',
             wordPressUtils: 'WordPressUtils.js'
         };
 
@@ -118,7 +164,7 @@
              * @return  void
              */
             success: function() {
-                window.StencilWordPressUtils.init($);
+                window.DesignBoldWordPressUtils.init($);
             }
         };
 
@@ -374,7 +420,7 @@
                 var scope = 'window.wp.media.view.MediaFrame.Select.prototype.browseRouter',
                     callback = function() {
                         window.wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
-                            StencilWordPressUtils.manage.browseRouter(
+                            DesignBoldWordPressUtils.manage.browseRouter(
                                 routerView
                             );
                         };
@@ -394,7 +440,7 @@
                         window.wp.media.view.Modal.prototype.on(
                             'open',
                             function() {
-                                StencilWordPressUtils.manage.modalOpen(this);
+                                DesignBoldWordPressUtils.manage.modalOpen(this);
                             }
                         );
                     };
@@ -482,42 +528,6 @@
         };
     })();
 
-
-    // var l10n = wp.media.view.l10n;
-    // wp.media.view.MediaFrame.Select.prototype.browseRouter = function( routerView ) {
-    //     routerView.set({
-    //         upload: {
-    //             text:     l10n.uploadFilesTitle,
-    //             priority: 20
-    //         },
-    //         browse: {
-    //             text:     l10n.mediaLibraryTitle,
-    //             priority: 40
-    //         },
-    //         my_tab: {
-    //             text:     "DesignBold",
-    //             priority: 60
-    //         }
-    //     });
-    // };
-
-    // if ( wp.media ) {
-    //     wp.media.view.Modal.prototype.on( "open", function() {
-    //         if($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "My tab")
-    //             doMyTabContent();
-    //     });
-    //     $(wp.media).on('click', '.media-router a.media-menu-item', function(e){
-    //         if(e.target.innerText == "My tab")
-    //             doMyTabContent();
-    //     });
-    // }
-
+    // We landed on the moon!
+    DesignBoldWordPressAdmin.init();
 })(jQuery);
-
-
-// function doMyTabContent() {
-//     var html = '<div id="myTabContent">';
-//     //My tab content here
-//     html += '</div>';
-//     $('body .media-modal-content .media-frame-content')[0].innerHTML = html;
-// }
