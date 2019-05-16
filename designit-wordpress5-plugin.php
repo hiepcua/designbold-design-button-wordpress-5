@@ -71,7 +71,7 @@ register_deactivation_hook( __FILE__, 'deactivate_designbold' );
 
 // add_action('admin_enqueue_scripts', function(){
 //     wp_enqueue_script( 'designbold', plugin_dir_url( __FILE__ ).'admin/css/designbold-admin.css', array(), time(), 'all' );
-//     wp_enqueue_script( 'designbold', plugin_dir_url( __FILE__ ).'admin/js/designbold-admin.js', array( 'jquery' ), time(), false );
+    // wp_enqueue_script( 'designbold', plugin_dir_url( __FILE__ ).'admin/js/admin.js', array( 'jquery' ), time(), false );
 // });
 
 /**

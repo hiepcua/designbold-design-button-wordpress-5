@@ -11,6 +11,9 @@
  * @see     https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
  * @version 1.11.2
  */
+
+import ('./WordPressUtils.js');
+
 (function($) {
     'use strict';
 
@@ -92,8 +95,8 @@
          * @var     Object
          */
         var __messages = {
-            failed: 'Could not load Stencil. Please contact ' +
-                'support@getstencil.com for help.'
+            failed: 'Could not load DesignBold. Please contact ' +
+                'info@designbold.com for help.'
         };
 
         /**

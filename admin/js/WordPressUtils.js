@@ -2,7 +2,7 @@
 /**
  * DesignBoldWordPressUtils
  * 
- * This utility class provides methods to integrate Stencil into the WordPress
+ * This utility class provides methods to integrate DesignBold into the WordPress
  * plugin that is installed on a site.
  * 
  * It may be important in the future to have noted that there is a reason that
@@ -131,9 +131,9 @@ window.DesignBoldWordPressUtils = (function() {
      * __menuItemCopy
      * 
      * @access  private
-     * @var     String (default: 'Stencil')
+     * @var     String (default: 'DesignBold')
      */
-    var __menuItemCopy = 'Stencil';
+    var __menuItemCopy = 'DesignBold';
 
     /**
      * __menuItemKey
@@ -171,7 +171,7 @@ window.DesignBoldWordPressUtils = (function() {
      * __validStates
      * 
      * This array contains the strings/keys of the different states in the Media
-     * Library that should show the Stencil tab. It's these tabs on the left:
+     * Library that should show the DesignBold tab. It's these tabs on the left:
      * https://i.imgur.com/HnuOY8k.png
      * 
      * @access  private
@@ -226,7 +226,7 @@ window.DesignBoldWordPressUtils = (function() {
      * 
      * @note    The __iFrameElement check is because some events might be
      *          triggered without the iframe having been drawn if the user
-     *          has a Stencil extension installed.
+     *          has a DesignBold extension installed.
      * @access  private
      * @param   String action
      * @param   Function callback
@@ -421,12 +421,12 @@ window.DesignBoldWordPressUtils = (function() {
     // };
 
     /**
-     * __addStencilBodyClass
+     * __addDesignBoldBodyClass
      * 
      * @access  private
      * @return  void
      */
-    var __addStencilBodyClass = function() {
+    var __addDesignBoldBodyClass = function() {
         var namespace = __pluginCSSNamespace,
             className = namespace;
         __$('body').addClass(className);
@@ -451,7 +451,7 @@ window.DesignBoldWordPressUtils = (function() {
      * @return  void
      */
     var __checkForDefaultTab = function() {
-        var $tab = __getStencilTabAnchorElement();
+        var $tab = __getDesignBoldTabAnchorElement();
         if ($tab.hasClass('active') === true) {
             __showIFrame();
         }
@@ -616,7 +616,7 @@ window.DesignBoldWordPressUtils = (function() {
      */
     var __getMenuItems = function(routerView) {
         var items = __getDefaultMenuItems();
-        if (__validStateForStencilTab(routerView) === true) {
+        if (__validStateForDesignBoldTab(routerView) === true) {
             items[__menuItemKey] = {
                 text: __menuItemCopy,
                 priority: 60
@@ -701,12 +701,12 @@ window.DesignBoldWordPressUtils = (function() {
     };
 
     /**
-     * __getStencilTabAnchorElement
+     * __getDesignBoldTabAnchorElement
      * 
      * @access  private
      * @return  jQuery
      */
-    var __getStencilTabAnchorElement = function() {
+    var __getDesignBoldTabAnchorElement = function() {
         var text = __menuItemCopy,
             selector = 'a.media-menu-item:contains("' + (text) + '"):visible',
             $element = __$(selector);
@@ -1202,13 +1202,13 @@ window.DesignBoldWordPressUtils = (function() {
     };
 
     /**
-     * __validStateForStencilTab
+     * __validStateForDesignBoldTab
      * 
      * @access  private
      * @param   Object routerView
      * @return  Boolean
      */
-    var __validStateForStencilTab = function(routerView) {
+    var __validStateForDesignBoldTab = function(routerView) {
         var controller = routerView.controller,
             state = controller._state;
         if (__validStates.indexOf(state) !== -1) {
@@ -1233,7 +1233,7 @@ window.DesignBoldWordPressUtils = (function() {
                 return false;
             }
             __setExternalRequestID();
-            __addStencilBodyClass();
+            __addDesignBoldBodyClass();
             __addMessageListeners();
             // __addBackboneRoutingListener();
             __addModalCloseListener();
@@ -1259,6 +1259,7 @@ window.DesignBoldWordPressUtils = (function() {
              */
             browseRouter: function(routerView) {
                 var items = __getMenuItems(routerView);
+                console.log(items);
                 routerView.set(items);
                 if (items[__menuItemKey] === undefined) {
                     __showMediaLibraryTab();
