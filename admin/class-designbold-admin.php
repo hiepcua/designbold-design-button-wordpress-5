@@ -95,9 +95,11 @@ class DesignBold_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/designbold-admin.js', array( 'jquery' ), $this->version, false );
-		// wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/designbold-admin.js', array( 'jquery' ), time(), false );
-
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/admin.js', array('jquery'), $this->version, true );
+		wp_localize_script( $this->plugin_name, 'DB_localize_script', array(
+			'df_token' => DF_TOKEN,
+		) );
+		// wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/designbold-admin.js', array( 'jquery' ), $this->version, false );
 	}
 
 }

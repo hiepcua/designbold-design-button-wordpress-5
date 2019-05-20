@@ -139,9 +139,9 @@ window.DesignBoldWordPressUtils = (function() {
      * __menuItemKey
      * 
      * @access  private
-     * @var     String (default: 'stencil')
+     * @var     String (default: 'designbold')
      */
-    var __menuItemKey = 'stencil';
+    var __menuItemKey = 'designbold';
 
     /**
      * __pluginCSSNamespace
@@ -1259,7 +1259,6 @@ window.DesignBoldWordPressUtils = (function() {
              */
             browseRouter: function(routerView) {
                 var items = __getMenuItems(routerView);
-                console.log(items);
                 routerView.set(items);
                 if (items[__menuItemKey] === undefined) {
                     __showMediaLibraryTab();

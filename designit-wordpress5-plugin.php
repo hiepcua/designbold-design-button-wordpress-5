@@ -27,6 +27,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 define( 'DESIGNBOLD_VERSION', '1.0.0' );
+define( 'DF_TOKEN', 'b0f99ceb3d596cb8e7152088548c41e981920c0bd92312047fd8e75b9eee440d' );
 
 /**
  * Due to some browsers not supporting the HTML5 File Constructor call, it's
@@ -68,11 +69,6 @@ function deactivate_designbold() {
 
 register_activation_hook( __FILE__, 'activate_designbold' );
 register_deactivation_hook( __FILE__, 'deactivate_designbold' );
-
-// add_action('admin_enqueue_scripts', function(){
-//     wp_enqueue_script( 'designbold', plugin_dir_url( __FILE__ ).'admin/css/designbold-admin.css', array(), time(), 'all' );
-    // wp_enqueue_script( 'designbold', plugin_dir_url( __FILE__ ).'admin/js/admin.js', array( 'jquery' ), time(), false );
-// });
 
 /**
  * The core plugin class that is used to define internationalization,

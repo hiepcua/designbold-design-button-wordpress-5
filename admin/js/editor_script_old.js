@@ -258,12 +258,13 @@ var DBbutton = (function (blocks, editor, components, i18n, element) {
         },
     });
 
-var callbackobject = {
-    addImage : function(url){
-        addImage(url);
-    }
-};
-return callbackobject;
+    var callbackobject = {
+        addImage : function(url){
+            addImage(url);
+        }
+    };
+    
+    return callbackobject;
 })(
 window.wp.blocks,
 window.wp.editor,
