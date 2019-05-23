@@ -27,6 +27,8 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 define( 'DESIGNBOLD_VERSION', '1.0.0' );
+define( 'DB_UAFFIX', 'DBWP5' );
+define( 'DB_AFFIX', 'dbwp5_' );
 define( 'DF_TOKEN', 'b0f99ceb3d596cb8e7152088548c41e981920c0bd92312047fd8e75b9eee440d' );
 
 /**

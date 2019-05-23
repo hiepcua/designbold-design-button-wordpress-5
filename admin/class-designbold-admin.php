@@ -51,7 +51,6 @@ class DesignBold_Admin {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-
 	}
 
 	/**
@@ -94,12 +93,57 @@ class DesignBold_Admin {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
+		$current_user = wp_get_current_user();
+		$current_user_id = $current_user->ID;
+		$access_token = $refresh_token = '';
 
+		if( $current_user_id !== 0 ){
+			$access_token = get_user_meta( $current_user_id, 'dbmenu_access_token', true );
+			$refresh_token = get_user_meta( $current_user_id, 'dbmenu_refresh_token', true );
+		}
+
+		wp_enqueue_script( $this->plugin_name.'_underscore.js', plugin_dir_url( __FILE__ ) . 'js/underscore-min.js', array('jquery'), $this->version, true );
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/admin.js', array('jquery'), $this->version, true );
-		wp_localize_script( $this->plugin_name, 'DB_localize_script', array(
+
+		wp_localize_script( $this->plugin_name, 'DBWP5_localize', array(
 			'df_token' => DF_TOKEN,
+			'access_token' => $access_token,
+			'refresh_token' => $refresh_token,
+			'app_redirect_url'  => admin_url('admin-ajax.php?action='.DB_AFFIX.'process-login'),
+			'app_key' => get_option('dbmenu_option_app_key') != '' ? get_option('dbmenu_option_app_key') : "",
 		) );
-		// wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/designbold-admin.js', array( 'jquery' ), $this->version, false );
+
+		wp_enqueue_script( $this->plugin_name.'_core', plugin_dir_url( __FILE__ ) . 'js/designbold-core.js', array( 'jquery' ), $this->version, false );
 	}
+
+	// wp_ajax_nopriv_dbwp5-process-login
+	// wp_ajax_dbwp5-process-login
+	public function login(){}
+
+	public function logout(){}
+	
+	public function save_options(){}
+	
+	public function insert_user(){}
+	
+	public function username_exists(){}
+	
+	public function set_current_user(){}
+
+	public function defind_user_metadata(){}
+
+	public function delete_user_metadata(){}
+
+	public function get_user_metadata_exists(){}
+
+	public function get_user_metadata_by_user_id_and_meta_key(){}
+	
+	public function save_account(){}
+
+	public function validate_access_token(){}
+
+	public function check_access_token_expires(){}
+	
+	public function refresh_access_token(){}
 
 }

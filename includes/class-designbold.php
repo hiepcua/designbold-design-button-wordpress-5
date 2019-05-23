@@ -98,6 +98,7 @@ class DesignBold
 		 * of the plugin.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-designbold-i18n.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'templates/media-view.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
@@ -105,7 +106,6 @@ class DesignBold
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-designbold-admin.php';
 
 		$this->loader = new DesignBold_Loader();
-
 	}
 
 	/**
@@ -122,7 +122,6 @@ class DesignBold
 		$plugin_i18n = new DesignBold_i18n();
 
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
-
 	}
 
 	/**
@@ -139,6 +138,14 @@ class DesignBold
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
+		$this->loader->add_action( 'wp_ajax_nopriv_dbwp5-process-login', $plugin_admin, 'login' );
+		$this->loader->add_action( 'wp_ajax_dbwp5-process-login', $plugin_admin, 'login' );
+
+		$this->loader->add_action( 'wp_ajax_nopriv_dbwp5-process-logout', $plugin_admin, 'logout' );
+		$this->loader->add_action( 'wp_ajax_dbwp5-process-logout', $plugin_admin, 'logout' );
+
+		$this->loader->add_action( 'wp_ajax_nopriv_dbwp5-save-option',$plugin_admin,'save_options');
+		$this->loader->add_action( 'wp_ajax_dbwp5-save-option', $plugin_admin, 'save_options' );
 	}
 
 	/**
