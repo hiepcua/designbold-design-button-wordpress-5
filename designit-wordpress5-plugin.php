@@ -27,8 +27,12 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 define( 'DESIGNBOLD_VERSION', '1.0.0' );
-define( 'DB_UAFFIX', 'DBWP5' );
-define( 'DB_AFFIX', 'dbwp5_' );
+define( 'DB_AFFIX', 'dbwp5-' );
+define( 'DB_NAME_APP_KEY', 'dbwp5_option_app_key' );
+define( 'DB_NAME_APP_SECRET', 'dbwp5_option_app_secret' );
+define( 'DB_ROOT_PATH', plugin_dir_path(__FILE__) );
+define( 'DF_APP_KEY', 'Mj4VXEJ3dAwr6GPBzlR80qOajvEgye8Lk9oDWNKbemZ1X74x5Q2VYMaWD2NY@designbold-apps' );
+define( 'DF_APP_SECRET', 'y63LZXXlPa4RWyEG1b7mn0z2vkwDjDvA6doZqeQJ3L5YBr8VKg9pxNEW0vYD@designbold-apps' );
 define( 'DF_TOKEN', 'b0f99ceb3d596cb8e7152088548c41e981920c0bd92312047fd8e75b9eee440d' );
 
 /**
@@ -50,6 +54,16 @@ define( 'DF_TOKEN', 'b0f99ceb3d596cb8e7152088548c41e981920c0bd92312047fd8e75b9ee
 if (defined('ALLOW_UNFILTERED_UPLOADS') === false) {
     define( 'ALLOW_UNFILTERED_UPLOADS', true );
 }
+
+/**
+ * The code insert/ update app config.
+ */
+add_action( 'dbwp5_app_config', 'dbwp5_update_option', 10, 2 );
+function dbwp5_update_option() {
+	update_option( DB_NAME_APP_KEY, DF_APP_KEY, 'yes');
+	update_option( DB_NAME_APP_SECRET, DF_APP_SECRET, 'yes');
+}
+do_action('dbwp5_app_config');
 
 /**
  * The code that runs during plugin activation.

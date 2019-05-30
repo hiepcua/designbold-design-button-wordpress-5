@@ -93,14 +93,9 @@ class DesignBold_Admin {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		$current_user = wp_get_current_user();
-		$current_user_id = $current_user->ID;
-		$access_token = $refresh_token = '';
 
-		if( $current_user_id !== 0 ){
-			$access_token = get_user_meta( $current_user_id, 'dbmenu_access_token', true );
-			$refresh_token = get_user_meta( $current_user_id, 'dbmenu_refresh_token', true );
-		}
+		$access_token = $this->dbwp5_get_option_user( 'dbwp5_access_token' );
+		$refresh_token = $this->dbwp5_get_option_user( 'dbwp5_refresh_token' );
 
 		wp_enqueue_script( $this->plugin_name.'_underscore.js', plugin_dir_url( __FILE__ ) . 'js/underscore-min.js', array('jquery'), $this->version, true );
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/admin.js', array('jquery'), $this->version, true );
@@ -110,40 +105,130 @@ class DesignBold_Admin {
 			'access_token' => $access_token,
 			'refresh_token' => $refresh_token,
 			'app_redirect_url'  => admin_url('admin-ajax.php?action='.DB_AFFIX.'process-login'),
-			'app_key' => get_option('dbmenu_option_app_key') != '' ? get_option('dbmenu_option_app_key') : "",
+			'app_key' => get_option('dbwp5_option_app_key') != '' ? get_option('dbwp5_option_app_key') : "",
 		) );
 
-		wp_enqueue_script( $this->plugin_name.'_core', plugin_dir_url( __FILE__ ) . 'js/designbold-core.js', array( 'jquery' ), $this->version, false );
+		// wp_enqueue_script( $this->plugin_name.'_core', plugin_dir_url( __FILE__ ) . 'js/designbold-core.js', array( 'jquery' ), $this->version, false );
 	}
 
-	// wp_ajax_nopriv_dbwp5-process-login
-	// wp_ajax_dbwp5-process-login
-	public function login(){}
+	public function login(){
+		if(file_exists(DB_ROOT_PATH . 'designbold.php')) {
+			include(DB_ROOT_PATH.'designbold.php');
 
-	public function logout(){}
+			$action = isset($_GET['db_action']) ? $_GET['db_action'] : 'callback';
+			if ($action == 'connect'){
+				connect();
+			}
+			else{
+				callback();
+			}
+			exit(0);
+		}
+	}
+
+	public function logout(){
+		dbwp5_delete_option_user('dbwp5_info_user');
+		dbwp5_delete_option_user('dbwp5_access_token');
+		dbwp5_delete_option_user('dbwp5_refresh_token');
+	}
+
+	/*
+	 * Update/ insert option
+	 * $option - (string) (required) Name of the option to update.
+	 * $newvalue - (mixed) (required) The NEW value for this option name. This value can be an integer, string, array, or object.
+	 * $autoload - (mixed) (optional) Whether to load the option when WordPress starts up
+	 * return - (boolean) True if option value has changed, false if not or if update failed.
+	*/
+	public function dbwp5_update_option_user( $option, $new_value, $autoload = flase){
+		if( $option !== null && $option !== '' && $option !== undefined ){
+			return update_option( $option, $new_value, $autoload );
+		}
+	}
+
+	/* Delete user option
+	 * $option - (string) (required) Name of the option to be deleted. 
+	 * Return (boolean) - True, if option is successfully deleted. False on failure, or option does not exist.
+	*/
+	public function dbwp5_delete_option_user( $option ){
+		if( $option !== null && $option !== '' && $option !== undefined ){
+			return delete_option( $option );
+		}
+	}
+
+	/**
+	 * $option
+	 * (string) (Required) Name of option to retrieve. Expected to not be SQL-escaped.
+
+	 * $default
+	 * (mixed) (Optional) Default value to return if the option does not exist.
+	 * Default value: false
+	 * 
+	 * return (mixed) Value set for the option.
+	*/
+	public function dbwp5_get_option_user( $option ){
+		return get_option( $option );
+	}
 	
-	public function save_options(){}
+	/**
+	 * Insert/ update user info
+	 * Insert/ update access token
+	 * Insert/ update refresh token
+	*/
+	public function dbwp5_save_account($access_token, $refresh_token){
+		if( $access_token !== '' && $refresh_token != '' ){
+			$ch = curl_init();
+
+			$options = array(
+				CURLOPT_RETURNTRANSFER => 1,
+				CURLOPT_URL => "https://api.designbold.com/v3/user/me?",
+				CURLOPT_HTTPHEADER => array(
+					"Content-Type: application/x-www-form-urlencoded",
+					'cache-control: no-cache',
+					'Authorization: Bearer ' . $access_token,
+				)
+			);
+
+			curl_setopt_array($ch, $options);
+
+			$response = curl_exec($ch);
+
+			$result = json_decode($response, true);
+
+			if( $result !== '' ) :
+
+				$user = $result['response']['user'];
+				$account = $result['response']['account'];
+				$user_metadata = array(
+					'user_name' => $user['username'],
+					'email' => $account['email'],
+					'group_id' => $account['group_id'],
+					'name' => $account['name'],
+					'avatar' => $account['avatar'],
+					'budget' => $account['budget'],
+					'budget_bonus' => $account['budget_bonus'],
+					'slug' => $account['slug'],
+					'hash_id' => $account['hash_id'],
+					'first_name' => $account['hash_id'],
+					'last_name' => $account['hash_id'],
+				);
+
+				// Update/ insert user meta data
+				$this->dbwp5_update_option_user( 'dbwp5_info_user', $user_metadata );
+				$this->dbwp5_update_option_user( 'dbwp5_access_token', $access_token );
+				$this->dbwp5_update_option_user( 'dbwp5_refresh_token', $refresh_token );
+
+			endif;
+		}
+	}
+
+	public function dbwp5_validate_access_token(){}
+
+	public function dbwp5_check_access_token_expires(){}
 	
-	public function insert_user(){}
-	
-	public function username_exists(){}
-	
-	public function set_current_user(){}
+	public function dbwp5_refresh_access_token(){}
 
-	public function defind_user_metadata(){}
+	public function dbwp5_show_workspace(){
 
-	public function delete_user_metadata(){}
-
-	public function get_user_metadata_exists(){}
-
-	public function get_user_metadata_by_user_id_and_meta_key(){}
-	
-	public function save_account(){}
-
-	public function validate_access_token(){}
-
-	public function check_access_token_expires(){}
-	
-	public function refresh_access_token(){}
+	}
 
 }

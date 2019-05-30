@@ -134,7 +134,7 @@ class DesignBold
 	private function define_admin_hooks() {
 
 		$plugin_admin = new DesignBold_Admin( $this->get_plugin_name(), $this->get_version() );
-
+		
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
@@ -144,8 +144,9 @@ class DesignBold
 		$this->loader->add_action( 'wp_ajax_nopriv_dbwp5-process-logout', $plugin_admin, 'logout' );
 		$this->loader->add_action( 'wp_ajax_dbwp5-process-logout', $plugin_admin, 'logout' );
 
-		$this->loader->add_action( 'wp_ajax_nopriv_dbwp5-save-option',$plugin_admin,'save_options');
-		$this->loader->add_action( 'wp_ajax_dbwp5-save-option', $plugin_admin, 'save_options' );
+		$this->loader->add_action( 'dbwp5_save_account', $plugin_admin, 'dbwp5_save_account', $priority = 10, $accepted_args = 2);
+
+		$this->loader->add_action( 'dbwp5_show_workspace', $plugin_admin, 'dbwp5_show_workspace' );
 	}
 
 	/**

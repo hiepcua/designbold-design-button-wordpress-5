@@ -45,138 +45,36 @@
  */
 window.DesignBoldWordPressUtils = (function() {
 
-    /**
-     * Properties
-     * 
-     */
-
-    /**
-     * __$
-     * 
-     * @access  private
-     * @var     null|jQuery (default: null)
-     */
     var __$ = null;
 
-    /**
-     * __appPath
-     * 
-     * @access  private
-     * @var     String (default: '/app?external&integration&wordPress')
-     */
     var __appPath = '/app?external&integration&wordPress';
 
-    /**
-     * __frameEventListeners
-     * 
-     * @access  private
-     * @var     Object (default: {})
-     */
     var __frameEventListeners = {};
 
-    /**
-     * __hosts
-     * 
-     * @access  private
-     * @var     Object
-     */
     var __hosts = {
         local: 'local.getstencil.com',
         dev: 'dev.getstencil.com',
         prod: 'getstencil.com'
     };
 
-    /**
-     * __iFrameAppendedToBody
-     * 
-     * @access  private
-     * @var     Boolean (default: false)
-     */
     var __iFrameAppendedToBody = false;
 
-    /**
-     * __iFrameElement
-     * 
-     * @access  private
-     * @var     HTMLIFrameElement|null (default: null)
-     */
     var __iFrameElement = null;
 
-    /**
-     * __iFrameLoaded
-     * 
-     * @access  private
-     * @var     Boolean (default: false)
-     */
-    // var __iFrameLoaded = false;
-
-    /**
-     * __iFramePresentationMethod
-     * 
-     * @access  private
-     * @var     String (default: 'reposition')
-     */
-    // var __iFramePresentationMethod = 'append';
     var __iFramePresentationMethod = 'reposition';
 
-    /**
-     * __mediaFrameUploader
-     * 
-     * @access  private
-     * @var     Object (default: null)
-     */
     var __mediaFrameUploader = null;
 
-    /**
-     * __menuItemCopy
-     * 
-     * @access  private
-     * @var     String (default: 'DesignBold')
-     */
     var __menuItemCopy = 'DesignBold';
 
-    /**
-     * __menuItemKey
-     * 
-     * @access  private
-     * @var     String (default: 'designbold')
-     */
     var __menuItemKey = 'designbold';
 
-    /**
-     * __pluginCSSNamespace
-     * 
-     * @access  private
-     * @var     String (default: 'stncl')
-     */
     var __pluginCSSNamespace = 'stncl';
 
-    /**
-     * __externalRequestID
-     * 
-     * @access  private
-     * @var     null|String (default: null)
-     */
     var __externalRequestID = null;
 
-    /**
-     * __string
-     * 
-     * @access  private
-     * @var     String (default: 'DesignBoldWordPressUtils')
-     */
     var __string = 'DesignBoldWordPressUtils';
 
-    /**
-     * __validStates
-     * 
-     * This array contains the strings/keys of the different states in the Media
-     * Library that should show the DesignBold tab. It's these tabs on the left:
-     * https://i.imgur.com/HnuOY8k.png
-     * 
-     * @access  private
-     * @var     Array
-     */
     var __validStates = [
 
         /**
@@ -208,30 +106,8 @@ window.DesignBoldWordPressUtils = (function() {
         'library'
     ];
 
-    /**
-     * __version
-     * 
-     * @access  private
-     * @var     String (default: '1.11.2')
-     */
     var __version = '1.11.2';
 
-    /**
-     * Methods
-     * 
-     */
-
-    /**
-     * __addActionMessageListener
-     * 
-     * @note    The __iFrameElement check is because some events might be
-     *          triggered without the iframe having been drawn if the user
-     *          has a DesignBold extension installed.
-     * @access  private
-     * @param   String action
-     * @param   Function callback
-     * @return  void
-     */
     var __addActionMessageListener = function(action, callback) {
         window.addEventListener('message', function(event) {
             if (event === undefined) {
@@ -272,13 +148,6 @@ window.DesignBoldWordPressUtils = (function() {
         });
     };
 
-    /**
-     * __addAllEventsListener
-     * 
-     * @access  private
-     * @param   Object modal
-     * @return  Boolean
-     */
     var __addAllEventsListener = function(modal) {
         if (__getRole() === 'dev') {
             return false;
@@ -295,30 +164,6 @@ window.DesignBoldWordPressUtils = (function() {
         return true;
     };
 
-    /**
-     * __addBackboneRoutingListener
-     * 
-     * @see     https://www.ibenic.com/extending-wordpress-media-uploader-custom-tab/
-     * @access  private
-     * @return  void
-     */
-    // var __addBackboneRoutingListener = function() {
-    //     window.wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
-    //         var items = __getMenuItems(routerView);
-    //         routerView.set(items);
-    //         if (items[__menuItemKey] === undefined) {
-    //             __showMediaLibraryTab();
-    //         }
-    //     };
-    // };
-
-    /**
-     * __addContentActivateListener
-     * 
-     * @access  private
-     * @param   Object modal
-     * @return  void
-     */
     var __addContentActivateListener = function(modal) {
         var eventName = 'content:activate:' + (__menuItemKey),
             callback = function(eventName) {
@@ -329,13 +174,6 @@ window.DesignBoldWordPressUtils = (function() {
         __addFrameEventListener(modal, eventName, callback);
     };
 
-    /**
-     * __addContentDeactivateListener
-     * 
-     * @access  private
-     * @param   Object modal
-     * @return  void
-     */
     var __addContentDeactivateListener = function(modal) {
         var eventName = 'content:deactivate:' + (__menuItemKey),
             callback = function(eventName) {
@@ -344,58 +182,18 @@ window.DesignBoldWordPressUtils = (function() {
         __addFrameEventListener(modal, eventName, callback);
     };
 
-    /**
-     * __addFeaturedImageToolbarActivateListener
-     * 
-     * @note    Not currently being used
-     * @access  private
-     * @param   Object modal
-     * @return  void
-     */
-    // var __addFeaturedImageToolbarActivateListener = function(modal) {
-    //     var eventName = 'toolbar:activate:featured-image',
-    //         callback = function(eventName) {
-    //             setTimeout(function() {
-    //                 __showIFrame();
-    //             }, 0);
-    //         };
-    //     __addFrameEventListener(modal, eventName, callback);
-    // };
-
-    /**
-     * __addFrameEventListener
-     * 
-     * @note    cid refers to the open frame's (aka modal) view id
-     * @access  private
-     * @param   Object modal
-     * @param   String eventName
-     * @param   Function callback
-     * @return  void
-     */
     var __addFrameEventListener = function(modal, eventName, callback) {
         var cid = __getModalCID();
         __frameEventListeners[cid] = __frameEventListeners[cid] || {};
         __frameEventListeners[cid][eventName] = callback;
     };
 
-    /**
-     * __addMessageListeners
-     * 
-     * @access  private
-     * @return  void
-     */
     var __addMessageListeners = function() {
         __addActionMessageListener('importImages', __messageCallbacks.importImages);
         __addActionMessageListener('message.app.alive', __messageCallbacks.appAlive);
         __addActionMessageListener('message.app.opened', __messageCallbacks.appOpened);
     };
 
-    /**
-     * __addModalCloseListener
-     * 
-     * @access  private
-     * @return  void
-     */
     var __addModalCloseListener = function() {
         window.wp.media.view.Modal.prototype.on(
             'close',
@@ -405,51 +203,18 @@ window.DesignBoldWordPressUtils = (function() {
         );
     };
 
-    /**
-     * __addModalOpenListener
-     * 
-     * @access  private
-     * @return  void
-     */
-    // var __addModalOpenListener = function() {
-    //     window.wp.media.view.Modal.prototype.on(
-    //         'open',
-    //         function(eventName) {
-    //             DesignBoldWordPressUtils.manage.modalOpen(this);
-    //         }
-    //     );
-    // };
-
-    /**
-     * __addDesignBoldBodyClass
-     * 
-     * @access  private
-     * @return  void
-     */
     var __addDesignBoldBodyClass = function() {
         var namespace = __pluginCSSNamespace,
             className = namespace;
         __$('body').addClass(className);
     };
 
-    /**
-     * __addWindowResizeListener
-     * 
-     * @access  private
-     * @return  void
-     */
     var __addWindowResizeListener = function() {
         __$(window).resize(function() {
             __positionIFrame();
         });
     };
 
-    /**
-     * __checkForDefaultTab
-     * 
-     * @access  private
-     * @return  void
-     */
     var __checkForDefaultTab = function() {
         var $tab = __getDesignBoldTabAnchorElement();
         if ($tab.hasClass('active') === true) {
@@ -457,12 +222,6 @@ window.DesignBoldWordPressUtils = (function() {
         }
     };
 
-    /**
-     * __getAppPath
-     * 
-     * @access  private
-     * @return  String
-     */
     var __getAppPath = function() {
         var path = __appPath,
             externalRequestID = __externalRequestID
@@ -470,12 +229,6 @@ window.DesignBoldWordPressUtils = (function() {
         return path;
     };
 
-    /**
-     * __getAppSRC
-     * 
-     * @access  private
-     * @return  String
-     */
     var __getAppSRC = function() {
         var host = __getHost(),
             path = __getAppPath(),
@@ -483,12 +236,6 @@ window.DesignBoldWordPressUtils = (function() {
         return src;
     };
 
-    /**
-     * __getDefaultMenuItems
-     * 
-     * @access  private
-     * @return  Object
-     */
     var __getDefaultMenuItems = function() {
         var l10n = window.wp.media.view.l10n,
             items = {
@@ -504,13 +251,6 @@ window.DesignBoldWordPressUtils = (function() {
         return items;
     };
 
-    /**
-     * __getElementZIndex
-     * 
-     * @access  private
-     * @param   HTMLElement element
-     * @return  String
-     */
     var __getElementZIndex = function(element) {
         var response = 'auto',
             zIndex,
@@ -545,12 +285,6 @@ window.DesignBoldWordPressUtils = (function() {
         return response;
     };
 
-    /**
-     * __getHost
-     * 
-     * @access  private
-     * @return  String
-     */
     var __getHost = function() {
         var role = __getRole(),
             hosts = __hosts,
@@ -558,12 +292,6 @@ window.DesignBoldWordPressUtils = (function() {
         return host;
     };
 
-    /**
-     * __getIFrameHTMLElement
-     * 
-     * @access  private
-     * @return  HTMLIFrameElement
-     */
     var __getIFrameHTMLElement = function() {
         if (__iFrameElement === null) {
             __loadIFrame();
@@ -572,34 +300,16 @@ window.DesignBoldWordPressUtils = (function() {
         return element;
     };
 
-    /**
-     * __getIFrameSRC
-     * 
-     * @access  private
-     * @return  String
-     */
     var __getIFrameSRC = function() {
         var src = __getAppSRC();
         return src;
     };
 
-    /**
-     * __getMediaModalContentElement
-     * 
-     * @access  private
-     * @return  jQuery
-     */
     var __getMediaModalContentElement = function() {
         var $mediaModalContent = __$('body .media-modal-content:visible');
         return $mediaModalContent;
     };
 
-    /**
-     * __getMediaLibraryTabAnchorElement
-     * 
-     * @access  private
-     * @return  jQuery
-     */
     var __getMediaLibraryTabAnchorElement = function() {
         var text = window.wp.media.view.l10n.mediaLibraryTitle,
             selector = 'a.media-menu-item:contains("' + (text) + '"):visible',
@@ -607,13 +317,6 @@ window.DesignBoldWordPressUtils = (function() {
         return $element;
     };
 
-    /**
-     * __getMenuItems
-     * 
-     * @access  private
-     * @param   Object routerView
-     * @return  Object
-     */
     var __getMenuItems = function(routerView) {
         var items = __getDefaultMenuItems();
         if (__validStateForDesignBoldTab(routerView) === true) {
@@ -625,13 +328,6 @@ window.DesignBoldWordPressUtils = (function() {
         return items;
     };
 
-    /**
-     * __getModalCID
-     * 
-     * @note    cid refers to the open frame's (aka modal) view id
-     * @access  private
-     * @return  null|String
-     */
     var __getModalCID = function() {
         var modal = __getModalReference();
         if (modal === null) {
@@ -641,16 +337,6 @@ window.DesignBoldWordPressUtils = (function() {
         return cid;
     };
 
-    /**
-     * __getModalReference
-     * 
-     * @note    The et_pb_file_frame and file_frame checks are performed to
-     *          account for the Divi Builder plugin (different versions).
-     * @see     https://i.imgur.com/hRHamYE.jpg
-     * @see     https://i.imgur.com/8he4M0L.png
-     * @access  private
-     * @return  Object|null
-     */
     var __getModalReference = function() {
         var modal = window.wp.media.frame;
         if (modal !== undefined) {
@@ -667,13 +353,6 @@ window.DesignBoldWordPressUtils = (function() {
         return null;
     };
 
-    /**
-     * __getRandomString
-     * 
-     * @access  private
-     * @param   Number length
-     * @return  String
-     */
     var __getRandomString = function(length) {
         var str = '',
             range = '0123456789abcdefghijklmnopqrstuvwxyz',
@@ -684,12 +363,6 @@ window.DesignBoldWordPressUtils = (function() {
         return str;
     };
 
-    /**
-     * __getRole
-     * 
-     * @access  private
-     * @return  String
-     */
     var __getRole = function() {
         if (window.location.host === 'local.getstencil.com') {
             return 'local';
@@ -700,12 +373,6 @@ window.DesignBoldWordPressUtils = (function() {
         return 'prod';
     };
 
-    /**
-     * __getDesignBoldTabAnchorElement
-     * 
-     * @access  private
-     * @return  jQuery
-     */
     var __getDesignBoldTabAnchorElement = function() {
         var text = __menuItemCopy,
             selector = 'a.media-menu-item:contains("' + (text) + '"):visible',
@@ -713,12 +380,6 @@ window.DesignBoldWordPressUtils = (function() {
         return $element;
     };
 
-    /**
-     * __getUploadMaxFilesize
-     * 
-     * @access  private
-     * @return  null|String
-     */
     var __getUploadMaxFilesize = function() {
         try {
             var filesize = window._wpPluploadSettings.defaults.filters.max_file_size;
@@ -739,24 +400,12 @@ window.DesignBoldWordPressUtils = (function() {
         return null;
     };
 
-    /**
-     * __hideIFrame
-     * 
-     * @access  private
-     * @return  void
-     */
     var __hideIFrame = function() {
         var namespace = __pluginCSSNamespace,
             className = (namespace) + '-body-open';
         __$('body').removeClass(className);
     };
 
-    /**
-     * __insertIFrameIntoTab
-     * 
-     * @access  private
-     * @return  Boolean
-     */
     var __insertIFrameIntoTab = function() {
         var element = __getIFrameHTMLElement();
         if (__iFramePresentationMethod === 'append') {
@@ -775,12 +424,6 @@ window.DesignBoldWordPressUtils = (function() {
         return true;
     };
 
-    /**
-     * __io
-     * 
-     * @access  private
-     * @var     Object
-     */
     var __io = {
 
         /**
@@ -896,13 +539,6 @@ window.DesignBoldWordPressUtils = (function() {
         }
     };
 
-    /**
-     * __listenForAllFrameEvents
-     * 
-     * @note    cid refers to the open frame's (aka modal) view id
-     * @access  private
-     * @return  Boolean
-     */
     var __listenForAllFrameEvents = function() {
         var cid = __getModalCID();
         if (__frameEventListeners[cid] !== undefined) {
@@ -920,12 +556,6 @@ window.DesignBoldWordPressUtils = (function() {
         return true;
     };
 
-    /**
-     * __loadIFrame
-     * 
-     * @access  private
-     * @return  void
-     */
     var __loadIFrame = function() {
         var element = document.createElement('iframe'),
             src = __getIFrameSRC(),
@@ -941,13 +571,6 @@ window.DesignBoldWordPressUtils = (function() {
         __iFrameElement = element;
     };
 
-    /**
-     * __log
-     * 
-     * @access  private
-     * @param   String msg
-     * @return  Boolean
-     */
     var __log = function(msg) {
         if (window.console === undefined) {
             return false;
@@ -959,12 +582,6 @@ window.DesignBoldWordPressUtils = (function() {
         return true;
     };
 
-    /**
-     * __messageCallbacks
-     * 
-     * @access  private
-     * @var     Object
-     */
     var __messageCallbacks = {
 
         /**
@@ -1021,12 +638,6 @@ window.DesignBoldWordPressUtils = (function() {
         }
     };
 
-    /**
-     * __positionIFrame
-     * 
-     * @access  private
-     * @return  Boolean
-     */
     var __positionIFrame = function() {
         if (__iFramePresentationMethod === 'append') {
             return false;
@@ -1051,14 +662,6 @@ window.DesignBoldWordPressUtils = (function() {
         return true;
     };
 
-    /**
-     * __postActionMessage
-     * 
-     * @access  private
-     * @param   String action
-     * @param   Object message
-     * @return  Boolean
-     */
     var __postActionMessage = function(action, message) {
         var host = __getHost(),
             targetOrigin = 'https://' + (host);
@@ -1067,24 +670,12 @@ window.DesignBoldWordPressUtils = (function() {
         return true;
     };
 
-    /**
-     * __setExternalRequestID
-     * 
-     * @access  private
-     * @return  void
-     */
     var __setExternalRequestID = function() {
         var randomStr = __getRandomString(8),
           externalRequestID = 'erid' + (randomStr);
         __externalRequestID = externalRequestID;
     };
 
-    /**
-     * __setIFrameHTMLElementZIndex
-     * 
-     * @access  private
-     * @return  void
-     */
     var __setIFrameHTMLElementZIndex = function() {
         var iFrameHTMLElement = __getIFrameHTMLElement(),
             modal = __getMediaModalContentElement().get(0),
@@ -1097,21 +688,6 @@ window.DesignBoldWordPressUtils = (function() {
         });
     };
 
-    /**
-     * __setMediaFrameUploader
-     * 
-     * I found that in 5.0.3, sometimes (I was unreliably able to reproduce this
-     * by toggling tabs, then switching sources of the modal, and then toggling
-     * tabs before attempting an export) the object-key
-     * ('.media-frame-uploader') wasn't available. But it seems to be available
-     * upon each initial load of the modal.
-     * 
-     * So I track a reference to it when a modal is initially opened, just
-     * incase.
-     * 
-     * @access  private
-     * @return  Boolean
-     */
     var __setMediaFrameUploader = function() {
         var modal = __getModalReference();
         if (modal === null) {
@@ -1127,12 +703,6 @@ window.DesignBoldWordPressUtils = (function() {
         return true;
     };
 
-    /**
-     * __showIFrame
-     * 
-     * @access  private
-     * @return  void
-     */
     var __showIFrame = function() {
         var namespace = __pluginCSSNamespace,
             className = (namespace) + '-body-open';
@@ -1141,24 +711,11 @@ window.DesignBoldWordPressUtils = (function() {
         __positionIFrame();
     };
 
-    /**
-     * __showMediaLibraryTab
-     * 
-     * @see     https://i.imgur.com/pRJT1Vf.png
-     * @access  private
-     * @return  void
-     */
     var __showMediaLibraryTab = function() {
         var $element = __getMediaLibraryTabAnchorElement();
         $element.trigger('click');
     };
 
-    /**
-     * __valid
-     * 
-     * @access  private
-     * @return  Boolean
-     */
     var __valid = function() {
         var scopes = [
                 'window.wp.media',
@@ -1175,13 +732,6 @@ window.DesignBoldWordPressUtils = (function() {
         return true;
     };
 
-    /**
-     * _validReference
-     * 
-     * @access  private
-     * @param   String str
-     * @return  Boolean
-     */
     var __validReference = function(str) {
         var pieces = str.split('.'),
             index,
@@ -1201,13 +751,6 @@ window.DesignBoldWordPressUtils = (function() {
         return true;
     };
 
-    /**
-     * __validStateForDesignBoldTab
-     * 
-     * @access  private
-     * @param   Object routerView
-     * @return  Boolean
-     */
     var __validStateForDesignBoldTab = function(routerView) {
         var controller = routerView.controller,
             state = controller._state;

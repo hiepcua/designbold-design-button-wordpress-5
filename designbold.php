@@ -23,12 +23,12 @@ class DesignboldSampleSdk {
      */
     public function __construct($params)
     {
-        $options_app_key = get_option('dbmenu_option_app_key') != '' ? get_option('dbmenu_option_app_key') : "";
-        $options_app_secret = get_option('dbmenu_option_app_secret') != '' ? get_option('dbmenu_option_app_secret') : "";
+        $options_app_key = get_option(DB_NAME_APP_KEY) != '' ? get_option(DB_NAME_APP_KEY) : "";
+        $options_app_secret = get_option(DB_NAME_APP_SECRET) != '' ? get_option(DB_NAME_APP_SECRET) : "";
 
         $this->app_key = $options_app_key;
         $this->app_secret = $options_app_secret;
-        $this->redirect_url = admin_url('admin-ajax.php?action=db-process-login');
+        $this->redirect_url = admin_url('admin-ajax.php?action=dbwp5-process-login');
         $this->scope = isset($params['scope']) ? $params['scope']  : "";
         $this->sdk_version = isset($params['sdk_version']) ? $params['sdk_version'] : "v3";
         $this->internal_debug = isset($params['internal_debug']) ? $params['internal_debug'] : false;
@@ -93,6 +93,7 @@ class DesignboldSampleSdk {
         );
         $response = $this->sendCURL($url, $options);
         $data = json_decode($response['body'],true);
+
         if ($response['http_code'] == 200) {
             # receive token
             if (isset($data['access_token'])) {
@@ -180,13 +181,12 @@ class DesignboldSampleSdk {
 }
 
 function connect(){
-    $options_app_key = get_option('dbmenu_option_app_key') != '' ? get_option('dbmenu_option_app_key') : "";
-    $options_app_secret = get_option('dbmenu_option_app_secret') != '' ? get_option('dbmenu_option_app_secret') : "";
-
+    $options_app_key = get_option(DB_NAME_APP_KEY) != '' ? get_option(DB_NAME_APP_KEY) : "";
+    $options_app_secret = get_option(DB_NAME_APP_SECRET) != '' ? get_option(DB_NAME_APP_SECRET) : "";
     $designbold_sdk = new DesignboldSampleSdk([
         'app_key' => $options_app_key,
         'app_secret' => $options_app_secret,
-        'redirect_url' => admin_url('admin-ajax.php?action=db-process-login'),
+        'redirect_url' => admin_url('admin-ajax.php?action=dbwp5-process-login'),
         'internal_debug' => false,
         'scope' => '*.*',
     ]);
@@ -197,17 +197,20 @@ function callback(){
     $code = isset($_GET['code']) ? $_GET['code'] : '';
     $status = isset($_GET['status']) ? $_GET['status'] : '';
     $msg = isset($_GET['msg']) ? $_GET['msg'] : 400;
+    // echo $code;
+
     if ($status == 200){
-        $options_app_key = get_option('dbmenu_option_app_key') != '' ? get_option('dbmenu_option_app_key') : "";
-        $options_app_secret = get_option('dbmenu_option_app_secret') != '' ? get_option('dbmenu_option_app_secret') : "";
+        $options_app_key = get_option(DB_NAME_APP_KEY) != '' ? get_option(DB_NAME_APP_KEY) : "";
+        $options_app_secret = get_option(DB_NAME_APP_SECRET) != '' ? get_option(DB_NAME_APP_SECRET) : "";
 
         $designbold_sdk = new DesignboldSampleSdk([
             'app_key' => $options_app_key,
             'app_secret' => $options_app_secret,
-            'redirect_url' => admin_url('admin-ajax.php?action=db-process-login'),
+            'redirect_url' => admin_url('admin-ajax.php?action=dbwp5-process-login'),
             'internal_debug' => false,
             'scope' => '*.*',
         ]);
+
         $designbold_sdk->setAuthorizationCode($code);
         try{
             $result = $designbold_sdk->requestAccessToken();
@@ -220,7 +223,7 @@ function callback(){
                     $siteUrl = get_option('siteurl') != '' ? get_option('siteurl') : "";
 
                     // Action d? luu thông tin account user
-                    do_action('designbold_auth_menu_bar_save_account', $designbold_sdk->access_token, $designbold_sdk->refresh_token); 
+                    do_action('dbwp5_save_account', $designbold_sdk->access_token, $designbold_sdk->refresh_token); 
 
                     echo '
                     <script type="text/javascript">
@@ -229,7 +232,7 @@ function callback(){
                     ';
                 }else{
                     // Action d? luu thông tin account user
-                    do_action('designbold_auth_menu_bar_save_account', $designbold_sdk->access_token, $designbold_sdk->refresh_token); 
+                    do_action('dbwp5_save_account', $designbold_sdk->access_token, $designbold_sdk->refresh_token); 
 
                     echo "
                     <script>
