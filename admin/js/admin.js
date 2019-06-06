@@ -111,6 +111,31 @@
         }
     }
 
+    var __getData = function(number = 0) {
+        var st = number * DBWP5.numPerPage;
+        var ed = st + DBWP5.numPerPage;
+        var response_data = new Promise(function(resolve, reject) {
+            // xhr.open("GET", "https://api.designbold.com/v3/document?owner=me&sort=modified&start="+st+"&limit="+ed+"&target=my-design&loc=wp&folder_id=");
+            xhr.open("GET", "https://api.designbold.com/v3/document?owner=me&sort=modified&start=0&limit=3&target=my-design&loc=wp&folder_id=");
+            xhr.send(data);
+            var data = null;
+            var xhr = new XMLHttpRequest();
+            xhr.withCredentials = true;
+            xhr.addEventListener("readystatechange", function() {
+                if (this.readyState === 4) {
+                    console.log(this.responseText);
+                }
+            });
+            xhr.setRequestHeader("Authorization", "Bearer pvqWZV2nmLOR5yPQkGBVel1Ewr0oM69KzgejxN7A");
+            xhr.send(data);
+        });
+        response_data.then(function(res) {
+            return res;
+        }).catch((reject) => {
+            console.log(reject);
+        });
+    }
+
     DBWP5.layout_workspaceData = function(data) {
         var section = document.createElement('div');
         section.className = 'section-items';
@@ -166,37 +191,37 @@
 
     var l10n = wp.media.view.l10n = typeof _wpMediaViewsL10n === 'undefined' ? {} : _wpMediaViewsL10n;
 
-    wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
-        routerView.set({
-            upload: {
-                text: l10n.uploadFilesTitle,
-                priority: 20
-            },
-            browse: {
-                text: l10n.mediaLibraryTitle,
-                priority: 40
-            },
-            designbold_tab: {
-                text: "DesignBold",
-                priority: 60
-            }
-        });
-    };
+    // wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
+    //     routerView.set({
+    //         upload: {
+    //             text: l10n.uploadFilesTitle,
+    //             priority: 20
+    //         },
+    //         browse: {
+    //             text: l10n.mediaLibraryTitle,
+    //             priority: 40
+    //         },
+    //         designbold_tab: {
+    //             text: "DesignBold",
+    //             priority: 60
+    //         }
+    //     });
+    // };
 
-    if (wp.media) {
-        wp.media.view.Modal.prototype.on("open", function() {
-            if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
-                $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
-                DBWP5.checkLogin();
-            }
-        });
-        $(wp.media).on('click', '.media-router a.media-menu-item', function(e) {
-            if (e.target.innerText == "DesignBold") {
-                $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
-                DBWP5.checkLogin();
-            }
-        });
-    }
+    // if (wp.media) {
+    //     wp.media.view.Modal.prototype.on("open", function() {
+    //         if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
+    //             $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
+    //             DBWP5.checkLogin();
+    //         }
+    //     });
+    //     $(wp.media).on('click', '.media-router a.media-menu-item', function(e) {
+    //         if (e.target.innerText == "DesignBold") {
+    //             $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
+    //             DBWP5.checkLogin();
+    //         }
+    //     });
+    // }
 })(document, window);
 
 /**
@@ -207,35 +232,143 @@
     'use strict';
 
     var DesignBoldWordPressAdmin = (function(){
-
         var __iFramePresentationMethod = 'reposition';
         var __iFrameAppendedToBody = false;
+        var __overrideIntervalCheckDuration = 10;
+        var __timeout = 5000;
 
+        var __filenames = {
+            admin: 'admin.js',
+            wordPressUtils: 'WordPressUtils.js'
+        };
 
-        var __getData = function(number = 0) {
-            var st = number * DBWP5.numPerPage;
-            var ed = st + DBWP5.numPerPage;
-            var response_data = new Promise(function(resolve, reject) {
-                // xhr.open("GET", "https://api.designbold.com/v3/document?owner=me&sort=modified&start="+st+"&limit="+ed+"&target=my-design&loc=wp&folder_id=");
-                xhr.open("GET", "https://api.designbold.com/v3/document?owner=me&sort=modified&start=0&limit=3&target=my-design&loc=wp&folder_id=");
-                xhr.send(data);
-                var data = null;
-                var xhr = new XMLHttpRequest();
-                xhr.withCredentials = true;
-                xhr.addEventListener("readystatechange", function() {
-                    if (this.readyState === 4) {
-                        console.log(this.responseText);
-                    }
-                });
-                xhr.setRequestHeader("Authorization", "Bearer pvqWZV2nmLOR5yPQkGBVel1Ewr0oM69KzgejxN7A");
-                xhr.send(data);
+        var __attempt = function(closure) {
+            try {
+                var response = closure();
+                return response;
+            } catch (err) {
+            }
+            return null;
+        };
+
+        var __callbacks = {
+            error: function() {
+                var editPostPage = window.location.pathname.indexOf('wp-admin/post.php') !== -1;
+                if (editPostPage === false) {
+                    return false;
+                }
+                var msg = __messages.failed;
+                alert(msg);
+                return true;
+            },
+            success: function() {
+                window.DesignBoldWordPressUtils.init($);
+            }
+        };
+
+        var __getPluginVersion = function() {
+            var adminFilename = __filenames.admin,
+                src = $('script[src*="' + (adminFilename) + '"]').first().attr('src'),
+                matches = src.match(/ver=([0-9\.]+)/);
+            if (matches === null) {
+                return null;
+            }
+            var version = matches.pop();
+            return version;
+        };
+
+        var __getHour = function() {
+            var currentDate = new Date(),
+                hour = currentDate.getDate() + '/'
+                    + (currentDate.getMonth() + 1)  + '/'
+                    + currentDate.getFullYear() + '@'
+                    + currentDate.getHours() + ':'
+                    + '00:'
+                    + '00';
+            return hour;
+        };
+
+        var __getTimezone = function() {
+            var currentDate = new Date(),
+                lang = 'en-us',
+                localeTimeString = currentDate.toLocaleTimeString(lang, {
+                    timeZoneName: 'short'
+                }),
+                pieces = localeTimeString.split(' '),
+                timezone = 'unknown';
+            if (pieces.length > 2) {
+                timezone = pieces[2];
+            }
+            return timezone;
+        };
+
+        var __getQueryData = function() {
+            var queryData = {
+                hour: __getHour(),
+                timezone: __getTimezone(),
+                version: __getPluginVersion()
+            };
+            if (queryData.version === null) {
+                delete queryData.version;
+            }
+            return queryData;
+        };
+
+        var __getQueryString = function() {
+            var queryData = __getQueryData(),
+                queryString = jQuery.param(queryData);
+            return queryString;
+        };
+
+        var __getLocalWordPressScriptPath = function() {
+            var path = __attempt(__getPluginWordPressUtilsPath);
+            var path1 = __getPluginWordPressUtilsPath();
+            if (path === null) {
+                return null;
+            }
+            var queryString = __getQueryString();
+            path = (path) + '?' + (queryString);
+            return path;
+        };
+
+        var __getPluginWordPressUtilsPath = function() {
+            var adminFilename = __filenames.admin,
+                wordPressUtilsFilename = __filenames.wordPressUtils,
+                src = $('script[src*="' + (adminFilename) + '"]').first().attr('src');
+            src = src.replace(adminFilename, wordPressUtilsFilename);
+            var host = window.location.host;
+            src = src.split(host).pop();
+            return src;
+        };
+
+        var __loadLocalWordPressScript = function(error) {
+            var path = __getLocalWordPressScriptPath(),
+                url = path,
+                success = __callbacks.success;
+            if (path === null) {
+                error();
+            } else {
+                __loadScript(url, success, error);
+            }
+        };
+
+        var __loadWordPressScript = function() {
+            var error = function() {
+                console.log("Can not load location WordPress script.")
+            };
+            __loadLocalWordPressScript(error);
+        };
+
+        var __loadScript = function(url, success, error) {
+            $.ajax({
+                cache: true,
+                dataType: 'script',
+                error: error,
+                success: success,
+                timeout: __timeout,
+                url: url
             });
-            response_data.then(function(res) {
-                return res;
-            }).catch((reject) => {
-                console.log(reject);
-            });
-        }
+        };
 
         var __getMediaModalContentElement = function() {
             var $mediaModalContent = __$('body .media-modal-content:visible');
@@ -272,13 +405,31 @@
             return true;
         };
 
-        var __override = {
+        var __validReference = function(str) {
+            var pieces = str.split('.'),
+            index,
+            reference = window;
+            for (index in pieces) {
+                if (isNaN(index) === true) {
+                    continue;
+                }
+                reference = reference[pieces[index]];
+                if (reference === undefined) {
+                    return false;
+                }
+                if (reference === null) {
+                    return false;
+                }
+            }
+            return true;
+        };
 
+        var __override = {
             browseRouter: function() {
                 var scope = 'window.wp.media.view.MediaFrame.Select.prototype.browseRouter',
                     callback = function() {
                         window.wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
-                            StencilWordPressUtils.manage.browseRouter(
+                            DesignBoldWordPressUtils.manage.browseRouter(
                                 routerView
                             );
                         };
@@ -292,7 +443,7 @@
                         window.wp.media.view.Modal.prototype.on(
                             'open',
                             function() {
-                                StencilWordPressUtils.manage.modalOpen(this);
+                                DesignBoldWordPressUtils.manage.modalOpen(this);
                             }
                         );
                     };
@@ -312,49 +463,8 @@
             }
         };
 
-        var __validReference = function(str) {
-            var pieces = str.split('.'),
-                index,
-                reference = window;
-            for (index in pieces) {
-                if (isNaN(index) === true) {
-                    continue;
-                }
-                reference = reference[pieces[index]];
-                if (reference === undefined) {
-                    return false;
-                }
-                if (reference === null) {
-                    return false;
-                }
-            }
-            return true;
-        };
-
         // Public
         return {
-
-            /**
-             * Methods
-             * 
-             */
-
-            /**
-             * init
-             * 
-             * @note    The override methods are required to be called in this
-             *          (stencil-admin.js) file rather than the loaded
-             *          WordPressUtils.js file because in the newest WordPress
-             *          (5.0.3), the "Set featured image" in the right column
-             *          of a post/page is actually instantiated before the
-             *          WordPressUtils.js file is loaded.
-             *          This means that the prototype objects/references aren't
-             *          overridden at the time that specific MediaFrame view
-             *          objects are made, which results in the code not properly
-             *          running in time.
-             * @access  public
-             * @return  void
-             */
             init: function() {
                 __override.browseRouter();
                 __override.modalOpen();
@@ -365,5 +475,7 @@
         };
 
     })();
+
+    DesignBoldWordPressAdmin.init();
 
 })(jQuery);

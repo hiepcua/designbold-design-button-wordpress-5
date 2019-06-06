@@ -69,7 +69,7 @@ window.DesignBoldWordPressUtils = (function() {
 
     var __menuItemKey = 'designbold';
 
-    var __pluginCSSNamespace = 'stncl';
+    var __pluginCSSNamespace = 'dbwp5';
 
     var __externalRequestID = null;
 
