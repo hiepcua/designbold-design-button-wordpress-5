@@ -429,9 +429,10 @@
                 var scope = 'window.wp.media.view.MediaFrame.Select.prototype.browseRouter',
                     callback = function() {
                         window.wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
-                            DesignBoldWordPressUtils.manage.browseRouter(
-                                routerView
-                            );
+                            alert(1);
+                            // DesignBoldWordPressUtils.manage.browseRouter(
+                            //     routerView
+                            // );
                         };
                     };
                 __override.reference(scope, callback);
@@ -443,7 +444,8 @@
                         window.wp.media.view.Modal.prototype.on(
                             'open',
                             function() {
-                                DesignBoldWordPressUtils.manage.modalOpen(this);
+                                alert(1);
+                                // DesignBoldWordPressUtils.manage.modalOpen(this);
                             }
                         );
                     };
