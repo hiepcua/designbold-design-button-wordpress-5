@@ -101,7 +101,7 @@ class DesignBold_Admin {
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/admin.js', array('jquery'), $this->version, true );
 
 		wp_localize_script( $this->plugin_name, 'DBWP5_localize', array(
-			'base_url' => DB_ROOT_PATH,
+			'base_url' => DB_URL,
 			'df_token' => DF_TOKEN,
 			'access_token' => $access_token,
 			'refresh_token' => $refresh_token,

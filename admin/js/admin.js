@@ -9,9 +9,9 @@
     DBWP5.access_token = DBWP5_localize.access_token;
     DBWP5.refresh_token = DBWP5_localize.refresh_token;
     DBWP5.base_url = DBWP5_localize.base_url;
-
+    console.log(DBWP5_localize.base_url + 'media-view.php');
     DBWP5.addIframe = function() {
-        var iframe = document.createElement('div');
+        var iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         iframe.style.position = 'absolute';
         iframe.style.zIndex = "100000";
@@ -22,6 +22,7 @@
         iframe.style.border = 0;
         iframe.width = '100%';
         iframe.height = '100%';
+        iframe.src = DBWP5_localize.base_url + 'media-view.php';
         iframe.name = "designbold-iframe";
         iframe.id = "designbold-iframe";
         document.body.appendChild(iframe);
@@ -191,37 +192,37 @@
 
     var l10n = wp.media.view.l10n = typeof _wpMediaViewsL10n === 'undefined' ? {} : _wpMediaViewsL10n;
 
-    // wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
-    //     routerView.set({
-    //         upload: {
-    //             text: l10n.uploadFilesTitle,
-    //             priority: 20
-    //         },
-    //         browse: {
-    //             text: l10n.mediaLibraryTitle,
-    //             priority: 40
-    //         },
-    //         designbold_tab: {
-    //             text: "DesignBold",
-    //             priority: 60
-    //         }
-    //     });
-    // };
+    wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
+        routerView.set({
+            upload: {
+                text: l10n.uploadFilesTitle,
+                priority: 20
+            },
+            browse: {
+                text: l10n.mediaLibraryTitle,
+                priority: 40
+            },
+            designbold_tab: {
+                text: "DesignBold",
+                priority: 60
+            }
+        });
+    };
 
-    // if (wp.media) {
-    //     wp.media.view.Modal.prototype.on("open", function() {
-    //         if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
-    //             $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
-    //             DBWP5.checkLogin();
-    //         }
-    //     });
-    //     $(wp.media).on('click', '.media-router a.media-menu-item', function(e) {
-    //         if (e.target.innerText == "DesignBold") {
-    //             $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
-    //             DBWP5.checkLogin();
-    //         }
-    //     });
-    // }
+    if (wp.media) {
+        wp.media.view.Modal.prototype.on("open", function() {
+            if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
+                $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
+                DBWP5.checkLogin();
+            }
+        });
+        $(wp.media).on('click', '.media-router a.media-menu-item', function(e) {
+            if (e.target.innerText == "DesignBold") {
+                $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
+                DBWP5.checkLogin();
+            }
+        });
+    }
 })(document, window);
 
 /**
@@ -231,253 +232,242 @@
 (function($) {
     'use strict';
 
-    var DesignBoldWordPressAdmin = (function(){
-        var __iFramePresentationMethod = 'reposition';
-        var __iFrameAppendedToBody = false;
-        var __overrideIntervalCheckDuration = 10;
-        var __timeout = 5000;
+    // var DesignBoldWordPressAdmin = (function(){
+    //     var __iFramePresentationMethod = 'reposition';
+    //     var __iFrameAppendedToBody = false;
+    //     var __overrideIntervalCheckDuration = 10;
+    //     var __browseRouterChangeDetectionInterval = 1500;
+    //     var __timeout = 5000;
 
-        var __filenames = {
-            admin: 'admin.js',
-            wordPressUtils: 'WordPressUtils.js'
-        };
+    //     var __filenames = {
+    //         admin: 'admin.js',
+    //         wordPressUtils: 'WordPressUtils.js'
+    //     };
 
-        var __attempt = function(closure) {
-            try {
-                var response = closure();
-                return response;
-            } catch (err) {
-            }
-            return null;
-        };
+    //     var __attempt = function(closure) {
+    //         try {
+    //             var response = closure();
+    //             return response;
+    //         } catch (err) {
+    //         }
+    //         return null;
+    //     };
 
-        var __callbacks = {
-            error: function() {
-                var editPostPage = window.location.pathname.indexOf('wp-admin/post.php') !== -1;
-                if (editPostPage === false) {
-                    return false;
-                }
-                var msg = __messages.failed;
-                alert(msg);
-                return true;
-            },
-            success: function() {
-                window.DesignBoldWordPressUtils.init($);
-            }
-        };
+    //     var __callbacks = {
+    //         error: function() {
+    //             var editPostPage = window.location.pathname.indexOf('wp-admin/post.php') !== -1;
+    //             if (editPostPage === false) {
+    //                 return false;
+    //             }
+    //             var msg = __messages.failed;
+    //             alert(msg);
+    //             return true;
+    //         },
+    //         success: function() {
+    //             window.DesignBoldWordPressUtils.init($);
+    //         }
+    //     };
 
-        var __getPluginVersion = function() {
-            var adminFilename = __filenames.admin,
-                src = $('script[src*="' + (adminFilename) + '"]').first().attr('src'),
-                matches = src.match(/ver=([0-9\.]+)/);
-            if (matches === null) {
-                return null;
-            }
-            var version = matches.pop();
-            return version;
-        };
+    //     var __getPluginVersion = function() {
+    //         var adminFilename = __filenames.admin,
+    //             src = $('script[src*="' + (adminFilename) + '"]').first().attr('src'),
+    //             matches = src.match(/ver=([0-9\.]+)/);
+    //         if (matches === null) {
+    //             return null;
+    //         }
+    //         var version = matches.pop();
+    //         return version;
+    //     };
 
-        var __getHour = function() {
-            var currentDate = new Date(),
-                hour = currentDate.getDate() + '/'
-                    + (currentDate.getMonth() + 1)  + '/'
-                    + currentDate.getFullYear() + '@'
-                    + currentDate.getHours() + ':'
-                    + '00:'
-                    + '00';
-            return hour;
-        };
+    //     var __getHour = function() {
+    //         var currentDate = new Date(),
+    //             hour = currentDate.getDate() + '/'
+    //                 + (currentDate.getMonth() + 1)  + '/'
+    //                 + currentDate.getFullYear() + '@'
+    //                 + currentDate.getHours() + ':'
+    //                 + '00:'
+    //                 + '00';
+    //         return hour;
+    //     };
 
-        var __getTimezone = function() {
-            var currentDate = new Date(),
-                lang = 'en-us',
-                localeTimeString = currentDate.toLocaleTimeString(lang, {
-                    timeZoneName: 'short'
-                }),
-                pieces = localeTimeString.split(' '),
-                timezone = 'unknown';
-            if (pieces.length > 2) {
-                timezone = pieces[2];
-            }
-            return timezone;
-        };
+    //     var __getTimezone = function() {
+    //         var currentDate = new Date(),
+    //             lang = 'en-us',
+    //             localeTimeString = currentDate.toLocaleTimeString(lang, {
+    //                 timeZoneName: 'short'
+    //             }),
+    //             pieces = localeTimeString.split(' '),
+    //             timezone = 'unknown';
+    //         if (pieces.length > 2) {
+    //             timezone = pieces[2];
+    //         }
+    //         return timezone;
+    //     };
 
-        var __getQueryData = function() {
-            var queryData = {
-                hour: __getHour(),
-                timezone: __getTimezone(),
-                version: __getPluginVersion()
-            };
-            if (queryData.version === null) {
-                delete queryData.version;
-            }
-            return queryData;
-        };
+    //     var __getQueryData = function() {
+    //         var queryData = {
+    //             hour: __getHour(),
+    //             timezone: __getTimezone(),
+    //             version: __getPluginVersion()
+    //         };
+    //         if (queryData.version === null) {
+    //             delete queryData.version;
+    //         }
+    //         return queryData;
+    //     };
 
-        var __getQueryString = function() {
-            var queryData = __getQueryData(),
-                queryString = jQuery.param(queryData);
-            return queryString;
-        };
+    //     var __getQueryString = function() {
+    //         var queryData = __getQueryData(),
+    //             queryString = jQuery.param(queryData);
+    //         return queryString;
+    //     };
 
-        var __getLocalWordPressScriptPath = function() {
-            var path = __attempt(__getPluginWordPressUtilsPath);
-            var path1 = __getPluginWordPressUtilsPath();
-            if (path === null) {
-                return null;
-            }
-            var queryString = __getQueryString();
-            path = (path) + '?' + (queryString);
-            return path;
-        };
+    //     var __getLocalWordPressScriptPath = function() {
+    //         var path = __attempt(__getPluginWordPressUtilsPath);
+    //         var path1 = __getPluginWordPressUtilsPath();
+    //         if (path === null) {
+    //             return null;
+    //         }
+    //         var queryString = __getQueryString();
+    //         path = (path) + '?' + (queryString);
+    //         return path;
+    //     };
 
-        var __getPluginWordPressUtilsPath = function() {
-            var adminFilename = __filenames.admin,
-                wordPressUtilsFilename = __filenames.wordPressUtils,
-                src = $('script[src*="' + (adminFilename) + '"]').first().attr('src');
-            src = src.replace(adminFilename, wordPressUtilsFilename);
-            var host = window.location.host;
-            src = src.split(host).pop();
-            return src;
-        };
+    //     var __getPluginWordPressUtilsPath = function() {
+    //         var adminFilename = __filenames.admin,
+    //             wordPressUtilsFilename = __filenames.wordPressUtils,
+    //             src = $('script[src*="' + (adminFilename) + '"]').first().attr('src');
+    //         src = src.replace(adminFilename, wordPressUtilsFilename);
+    //         var host = window.location.host;
+    //         src = src.split(host).pop();
+    //         return src;
+    //     };
 
-        var __loadLocalWordPressScript = function(error) {
-            var path = __getLocalWordPressScriptPath(),
-                url = path,
-                success = __callbacks.success;
-            if (path === null) {
-                error();
-            } else {
-                __loadScript(url, success, error);
-            }
-        };
+    //     var __loadLocalWordPressScript = function(error) {
+    //         var path = __getLocalWordPressScriptPath(),
+    //             url = path,
+    //             success = __callbacks.success;
+    //         if (path === null) {
+    //             error();
+    //         } else {
+    //             __loadScript(url, success, error);
+    //         }
+    //     };
 
-        var __loadWordPressScript = function() {
-            var error = function() {
-                console.log("Can not load location WordPress script.")
-            };
-            __loadLocalWordPressScript(error);
-        };
+    //     var __loadWordPressScript = function() {
+    //         var error = function() {
+    //             console.log("Can not load location WordPress script.")
+    //         };
+    //         __loadLocalWordPressScript(error);
+    //     };
 
-        var __loadScript = function(url, success, error) {
-            $.ajax({
-                cache: true,
-                dataType: 'script',
-                error: error,
-                success: success,
-                timeout: __timeout,
-                url: url
-            });
-        };
+    //     var __loadScript = function(url, success, error) {
+    //         $.ajax({
+    //             cache: true,
+    //             dataType: 'script',
+    //             error: error,
+    //             success: success,
+    //             timeout: __timeout,
+    //             url: url
+    //         });
+    //     };
 
-        var __getMediaModalContentElement = function() {
-            var $mediaModalContent = __$('body .media-modal-content:visible');
-            return $mediaModalContent;
-        };
+    //     var __getMediaModalContentElement = function() {
+    //         var $mediaModalContent = __$('body .media-modal-content:visible');
+    //         return $mediaModalContent;
+    //     };
 
-        var __addWindowResizeListener = function() {
-            $(window).resize(function() {
-                __positionIFrame();
-            });
-        };
+    //     var __validReference = function(str) {
+    //         var pieces = str.split('.'),
+    //         index,
+    //         reference = window;
+    //         for (index in pieces) {
+    //             if (isNaN(index) === true) {
+    //                 continue;
+    //             }
+    //             reference = reference[pieces[index]];
+    //             if (reference === undefined) {
+    //                 return false;
+    //             }
+    //             if (reference === null) {
+    //                 return false;
+    //             }
+    //         }
+    //         return true;
+    //     };
 
-        var __positionIFrame = function() {
-            if (__iFramePresentationMethod === 'append') {
-                return false;
-            }
-            if (__iFrameAppendedToBody === false) {
-                return false;
-            }
-            var $mediaModalContent = __getMediaModalContentElement(),
-                $parent = $mediaModalContent.find('.media-frame-content').last();
-            if ($parent.length === 0) {
-                return false;
-            }
-            var offset = $parent.offset(),
-                element = __getIFrameHTMLElement();
-            __setIFrameHTMLElementZIndex();
-            __$(element).css({
-                left: offset.left + 'px',
-                top: (offset.top + 1) + 'px',
-                width: $parent.width() + 'px',
-                height: $parent.height() + 'px'
-            });
-            return true;
-        };
+    //     var __setBrowseRouterChangeDetectionInterval = function(browseRouterCallback) {
+    //         var callback = function() {
+    //                 var callback = window.wp.media.view.MediaFrame.Select.prototype.browseRouter,
+    //                     str = callback.toString();
+    //                 if (str.match(/DesignBoldWordPressUtils/) === null) {
+    //                     var child = window.wp.media.view.MediaFrame.Select.prototype.browseRouter;
+    //                     window.wp.media.view.MediaFrame.Select.prototype.browseRouter = function() {
+    //                         DesignBoldWordPressUtils;
+    //                         var args = arguments;
+    //                         args = [].slice.call(args);
+    //                         child.apply(window, args);
+    //                         browseRouterCallback.apply(window, args);
+    //                     };
+    //                 }
+    //             },
+    //             period = __browseRouterChangeDetectionInterval,
+    //             reference = setInterval(callback, period);
+    //     };
 
-        var __validReference = function(str) {
-            var pieces = str.split('.'),
-            index,
-            reference = window;
-            for (index in pieces) {
-                if (isNaN(index) === true) {
-                    continue;
-                }
-                reference = reference[pieces[index]];
-                if (reference === undefined) {
-                    return false;
-                }
-                if (reference === null) {
-                    return false;
-                }
-            }
-            return true;
-        };
+    //     var __override = {
+    //         browseRouter: function() {
+    //             var scope = 'window.wp.media.view.MediaFrame.Select.prototype.browseRouter',
+    //                 callback = function() {
+    //                     window.wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
+    //                         var browseRouterCallback = function(routerView) {
+    //                             DesignBoldWordPressUtils.manage.browseRouter(routerView);
+    //                         };
+    //                         window.wp.media.view.MediaFrame.Select.prototype.browseRouter = browseRouterCallback;
+    //                         __setBrowseRouterChangeDetectionInterval(browseRouterCallback);
+    //                     };
+    //                 };
+    //             __override.reference(scope, callback);
+    //         },
 
-        var __override = {
-            browseRouter: function() {
-                var scope = 'window.wp.media.view.MediaFrame.Select.prototype.browseRouter',
-                    callback = function() {
-                        window.wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
-                            alert(1);
-                            // DesignBoldWordPressUtils.manage.browseRouter(
-                            //     routerView
-                            // );
-                        };
-                    };
-                __override.reference(scope, callback);
-            },
+    //         modalOpen: function() {
+    //             var scope = 'window.wp.media.view.Modal.prototype.on',
+    //                 callback = function() {
+    //                     var openModalCallback = function() {
+    //                         DesignBoldWordPressUtils.manage.modalOpen(this);
+    //                     };
+    //                     window.wp.media.view.Modal.prototype.on('open', openModalCallback);
+    //                 };
 
-            modalOpen: function() {
-                var scope = 'window.wp.media.view.Modal.prototype.on',
-                    callback = function() {
-                        window.wp.media.view.Modal.prototype.on(
-                            'open',
-                            function() {
-                                alert(1);
-                                // DesignBoldWordPressUtils.manage.modalOpen(this);
-                            }
-                        );
-                    };
-                __override.reference(scope, callback);
-            },
+    //             __override.reference(scope, callback);
+    //         },
 
-            reference: function(scope, callback) {
-                var interval,
-                    check = function() {
-                        if (__validReference(scope) === true) {
-                            clearInterval(interval);
-                            callback();
-                        }
-                    },
-                    intervalCheckDuration = __overrideIntervalCheckDuration;
-                interval = setInterval(check, intervalCheckDuration);
-            }
-        };
+    //         reference: function(scope, callback) {
+    //             var interval,
+    //                 check = function() {
+    //                     if (__validReference(scope) === true) {
+    //                         clearInterval(interval);
+    //                         callback();
+    //                     }
+    //                 },
+    //                 intervalCheckDuration = __overrideIntervalCheckDuration;
+    //             interval = setInterval(check, intervalCheckDuration);
+    //         }
+    //     };
 
-        // Public
-        return {
-            init: function() {
-                __override.browseRouter();
-                __override.modalOpen();
-                $(document).ready(function($) {
-                    __loadWordPressScript();
-                });
-            }
-        };
+    //     // Public
+    //     return {
+    //         init: function() {
+    //             __override.browseRouter();
+    //             __override.modalOpen();
+    //             $(document).ready(function($) {
+    //                 __loadWordPressScript();
+    //             });
+    //         }
+    //     };
 
-    })();
+    // })();
 
-    DesignBoldWordPressAdmin.init();
+    // DesignBoldWordPressAdmin.init();
 
 })(jQuery);

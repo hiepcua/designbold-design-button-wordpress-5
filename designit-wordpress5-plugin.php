@@ -31,6 +31,7 @@ define( 'DB_AFFIX', 'dbwp5-' );
 define( 'DB_NAME_APP_KEY', 'dbwp5_option_app_key' );
 define( 'DB_NAME_APP_SECRET', 'dbwp5_option_app_secret' );
 define( 'DB_ROOT_PATH', plugin_dir_path(__FILE__) );
+define( 'DB_URL', plugin_dir_url(__FILE__) );
 define( 'DF_APP_KEY', 'Mj4VXEJ3dAwr6GPBzlR80qOajvEgye8Lk9oDWNKbemZ1X74x5Q2VYMaWD2NY@designbold-apps' );
 define( 'DF_APP_SECRET', 'y63LZXXlPa4RWyEG1b7mn0z2vkwDjDvA6doZqeQJ3L5YBr8VKg9pxNEW0vYD@designbold-apps' );
 define( 'DF_TOKEN', 'b0f99ceb3d596cb8e7152088548c41e981920c0bd92312047fd8e75b9eee440d' );
