@@ -1,0 +1,11 @@
+#dbwp5_wrap_content{
+    position: relative;
+}
+#dbwp5_wrap_content .content .item {
+    float: left;
+    width: calc(20% - 10px);
+    padding-left: 5px;
+    padding-right: 5px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}

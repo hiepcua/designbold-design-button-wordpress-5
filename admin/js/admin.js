@@ -9,30 +9,18 @@
     DBWP5.access_token = DBWP5_localize.access_token;
     DBWP5.refresh_token = DBWP5_localize.refresh_token;
     DBWP5.base_url = DBWP5_localize.base_url;
-    console.log(DBWP5_localize.base_url + 'media-view.php');
-    DBWP5.addIframe = function() {
-        var iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.style.position = 'absolute';
-        iframe.style.zIndex = "100000";
-        iframe.style.top = 0;
-        iframe.style.left = 0;
-        iframe.style.right = 0;
-        iframe.style.bottom = 0;
-        iframe.style.border = 0;
-        iframe.width = '100%';
-        iframe.height = '100%';
-        iframe.src = DBWP5_localize.base_url + 'media-view.php';
-        iframe.name = "designbold-iframe";
-        iframe.id = "designbold-iframe";
-        document.body.appendChild(iframe);
-    }
+
+    var __$ = null;
+    var __iFrameElement = null;
+    var __pluginCSSNamespace = 'dbwp5';
+    var __iFramePresentationMethod = 'reposition';
+    var __iFrameAppendedToBody = false;
 
     DBWP5.isSafari = /constructor/i.test(window.HTMLElement) || (function(p) {
         return p.toString() === "[object SafariRemoteNotification]";
     })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
 
-     DBWP5.$ = function(selector) {
+    DBWP5.$ = function(selector) {
         var selectorType = 'querySelectorAll';
         if (selector.indexOf('#') === 0) {
             selectorType = 'getElementById';
@@ -58,7 +46,6 @@
         var top = (screen.height / 2) - (h / 2);
         window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
     };
-
 
     DBWP5.checkLogin = function() {
         var access_token = DBWP5_localize.access_token;
@@ -137,6 +124,227 @@
         });
     }
 
+    var __makeRequest = (url, method, access_token) => {
+        // Return it as a Promise
+        return new Promise((resolve, reject) => {
+            // Create XHR request
+            var request = new XMLHttpRequest();
+            // Setup our listener to process compeleted requests
+            request.onreadystatechange = function (){
+
+                // Only run if the request completed requests
+                if(request.readyState !== 4) return;
+
+                // Process the response
+                if (request.status >= 200 && request.status < 300){
+                    // If successful
+                    resolve(request);
+                }else{
+                    // If failed
+                    reject({
+                        status: request.status,
+                        statusText : request.statusText
+                    });
+                }
+            };
+
+            // Setup our HTTP request
+            request.open(method || 'GET', url, true);
+
+            // Setup our request header
+            if(access_token != ''){
+                request.setRequestHeader("Authorization", "Bearer "+access_token);
+            }
+
+            // Send request
+            request.send();
+        });
+    }
+
+    var __getWorkSpace = () =>{
+        return new Promise((resolve, reject) => {
+            var data = null;
+
+            var xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+
+            xhr.addEventListener("readystatechange", function () {
+                if (this.readyState === 4) {
+                    if(xhr.status == 200){
+                        resolve(this.response);
+                    }else{
+                        reject(this.statusText);
+                    }
+                }
+            });
+
+            xhr.open("GET", "https://api.designbold.com/v3/document?owner=me&sort=modified&start=0&limit=3&target=my-design&loc=wp&folder_id=");
+            xhr.setRequestHeader("Authorization", "Bearer BwPmKYDW5XnLvNJGxqV0lV4e7l91pR2O0bardgoZ");
+
+            xhr.send(data);
+        })
+    };
+
+    var __getMediaModalContentElement = function() {
+        var $mediaModalContent = $('body .media-modal-content:visible');
+        return $mediaModalContent;
+    };
+
+    var __loadIFrame = function() {
+        var element = document.createElement('iframe'),
+            src = DBWP5_localize.base_url + 'media-view.php',
+            namespace = __pluginCSSNamespace;
+        element.setAttribute('id', (namespace) + '-wp');
+        element.setAttribute('name', (namespace) + '-wp');
+        element.setAttribute('class', (namespace) + '-iframe');
+        element.setAttribute('frameborder', '0');
+        element.setAttribute('allowtransparency', 'true');
+        element.setAttribute('src', src);
+        __iFrameElement = element;
+
+        __getWorkSpace()
+        .then(function(value){
+            var Obj_items = JSON.parse(value);
+            // console.log(Obj_items);
+            var list_items = $('#dbwp5-wp-items').html();
+            $('#dbwp5_content').html(_.template(list_items, {items : Obj_items}));
+        })
+        .catch(function(rej){
+            console.log(rej);
+        });
+    };
+
+    var __getIFrameHTMLElement = function() {
+        if (__iFrameElement === null) {
+            __loadIFrame();
+        }
+        var element = __iFrameElement;
+        return element;
+    };
+
+    var __insertIFrameIntoTab = function() {
+        var element = __getIFrameHTMLElement();
+        if (__iFramePresentationMethod === 'append') {
+            var $mediaModalContent = __getMediaModalContentElement().last(),
+                mediaFrameContentElement = $mediaModalContent.find('.media-frame-content').get(0);
+            mediaFrameContentElement.appendChild(element);
+            return true;
+        }
+        if (__iFrameAppendedToBody === true) {
+            return false;
+        }
+        var $body = $('body'),
+            body = $body.get(0);
+        body.appendChild(element);
+        __iFrameAppendedToBody = true;
+        return true;
+    };
+
+    var __setIFrameHTMLElementZIndex = function() {
+        var iFrameHTMLElement = __getIFrameHTMLElement(),
+            modal = __getMediaModalContentElement().get(0),
+            zIndex = __getElementZIndex(modal);
+        if (isNaN(zIndex) === false) {
+            zIndex += 1
+        }
+        $(iFrameHTMLElement).css({
+            'z-index': zIndex
+        });
+    };
+
+    var __getElementZIndex = function(element) {
+        var response = 'auto',
+            zIndex,
+            items = $(element).parents().addBack().toArray(),
+            index,
+            item;
+        for (index in items) {
+            item = items[index];
+            zIndex = $(item).css('z-index');
+            if (zIndex === 'auto') {
+                continue;
+            }
+            if (zIndex === 'initial') {
+                continue;
+            }
+            if (zIndex === 'inherit') {
+                continue;
+            }
+            if (isNaN(zIndex) === true) {
+                continue;
+            }
+            zIndex = parseInt(zIndex, 10);
+            if (response === 'auto') {
+                response = zIndex;
+                continue;
+            }
+            if (zIndex > response) {
+                response = zIndex;
+                continue;
+            }
+        }
+        return response;
+    };
+
+    var __addDesignBoldBodyClass = function() {
+        var namespace = __pluginCSSNamespace,
+            className = namespace;
+        $('body').addClass(className);
+    };
+
+    var __positionIFrame = function() {
+        if (__iFramePresentationMethod === 'append') {
+            return false;
+        }
+        if (__iFrameAppendedToBody === false) {
+            return false;
+        }
+        var $mediaModalContent = __getMediaModalContentElement(),
+            $parent = $mediaModalContent.find('.media-frame-content').last();
+        if ($parent.length === 0) {
+            return false;
+        }
+        var offset = $parent.offset(),
+            element = __getIFrameHTMLElement();
+        __setIFrameHTMLElementZIndex();
+        $(element).css({
+            left: offset.left + 'px',
+            top: (offset.top + 1) + 'px',
+            width: $parent.width() + 'px',
+            height: $parent.height() + 'px'
+        });
+        return true;
+    };
+
+    var __showIFrame = function() {
+        var namespace = __pluginCSSNamespace,
+            className = (namespace) + '-body-open';
+        $('body').addClass(className);
+        __insertIFrameIntoTab();
+        __positionIFrame();
+    };
+
+    var __hideIFrame = function() {
+        var namespace = __pluginCSSNamespace,
+            className = (namespace) + '-body-open';
+        __$('body').removeClass(className);
+    };
+
+    var __addWindowResizeListener = function() {
+        __$(window).resize(function() {
+            __positionIFrame();
+        });
+    };
+
+    var __addModalCloseListener = function() {
+        window.wp.media.view.Modal.prototype.on(
+            'close',
+            function() {
+                __hideIFrame();
+            }
+        );
+    };
+
     DBWP5.layout_workspaceData = function(data) {
         var section = document.createElement('div');
         section.className = 'section-items';
@@ -185,7 +393,10 @@
     }
 
     DBWP5.init = function() {
-        DBWP5.addIframe();
+        __$ = $;
+        // __loadIFrame();
+        __addWindowResizeListener();
+        __addModalCloseListener();
     }
 
     DBWP5.init();
@@ -211,16 +422,18 @@
 
     if (wp.media) {
         wp.media.view.Modal.prototype.on("open", function() {
-            if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
-                $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
-                DBWP5.checkLogin();
-            }
+            __addDesignBoldBodyClass();
+            __showIFrame();
+            // if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
+            //     $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
+            //     DBWP5.checkLogin();
+            // }
         });
         $(wp.media).on('click', '.media-router a.media-menu-item', function(e) {
-            if (e.target.innerText == "DesignBold") {
-                $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
-                DBWP5.checkLogin();
-            }
+            // if (e.target.innerText == "DesignBold") {
+            //     $('body .media-modal-content .media-frame-content').innerHTML = DBWP5.frame_content;
+            //     DBWP5.checkLogin();
+            // }
         });
     }
 })(document, window);
