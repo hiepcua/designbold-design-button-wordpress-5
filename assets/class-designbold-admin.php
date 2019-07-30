@@ -97,7 +97,7 @@ class DesignBold_Admin {
 		$access_token = $this->dbwp5_get_option_user( 'dbwp5_access_token' );
 		$refresh_token = $this->dbwp5_get_option_user( 'dbwp5_refresh_token' );
 
-		wp_enqueue_script( $this->plugin_name.'_underscore.js', plugin_dir_url( __FILE__ ) . 'js/underscore-min.js' );
+		// wp_enqueue_script( $this->plugin_name.'_underscore.js', plugin_dir_url( __FILE__ ) . 'js/underscore-min.js' );
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/admin.js', array('jquery'), $this->version, true );
 
 		wp_localize_script( $this->plugin_name, 'DBWP5_localize', array(
