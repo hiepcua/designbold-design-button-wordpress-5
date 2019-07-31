@@ -175,8 +175,6 @@ function dbwp5_save_account($access_token, $refresh_token) {
 		$response = curl_exec($ch);
 
 		$result = json_decode($response, true);
-		echo '<br>';
-		print_r($result);
 
 		if ($result !== ''):
 
@@ -203,13 +201,6 @@ function dbwp5_save_account($access_token, $refresh_token) {
 
 		endif;
 	}
-}
-
-/**
- *
- */
-add_action('dbwp5_show_workspace', 'dbwp5_show_workspace');
-function dbwp5_show_workspace() {
 }
 
 /**

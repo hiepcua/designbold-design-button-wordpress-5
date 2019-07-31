@@ -42,70 +42,6 @@
         window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
     };
 
-    DBWP5.getUserInfo = function(access_token) {
-        if (access_token !== '' && access_token != "undefined" && access_token != null) {
-            var userInfo = new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.withCredentials = false;
-                xhr.addEventListener("readystatechange", function() {
-                    if (this.readyState === 4) {
-                        if (xhr.status == 200) {
-                            resolve(this.response);
-                        } else {
-                            reject(this.statusText);
-                        }
-                    }
-                });
-                xhr.open("GET", "https://api.designbold.com/v3/user/me");
-                xhr.setRequestHeader("Authorization", "Bearer " + access_token);
-                xhr.send();
-            });
-            userInfo.then(function(value) {
-                DBWP5.userInfoAPI = JSON.parse(value);
-                if (DBWP5.userInfoAPI.response.user.hash_id !== 'guest') {
-                    // var user_template = _.template($('#db_user_nav_tmpl').html());
-                    // $('#designbold_user_info').html(user_template({
-                    //     user: DBWP5.userInfoAPI.response.account,
-                    // })).show();
-                    DBWP5.layout_workspaceData();
-                } else {
-                    var box_login_signup_tmp = _.template($('#db_user_designbold_login_nav_tmpl').html());
-                    $('#designbold_login_nav').html(box_login_signup_tmp({}));
-                }
-            }).catch(function(rej) {
-                console.log(rej);
-            })
-        } else {
-            var login_view = _.template($('#designit-wordpress5-plugin_login_tmpl').html());
-            $('body .media-modal-content .media-frame-content').html(login_view({}));
-        }
-    }
-
-    var __getData = function(number = 0) {
-        var st = number * DBWP5.numPerPage;
-        var ed = st + DBWP5.numPerPage;
-        var response_data = new Promise(function(resolve, reject) {
-            // xhr.open("GET", "https://api.designbold.com/v3/document?owner=me&sort=modified&start="+st+"&limit="+ed+"&target=my-design&loc=wp&folder_id=");
-            xhr.open("GET", "https://api.designbold.com/v3/document?owner=me&sort=modified&start=0&limit=3&target=my-design&loc=wp&folder_id=");
-            xhr.send(data);
-            var data = null;
-            var xhr = new XMLHttpRequest();
-            xhr.withCredentials = true;
-            xhr.addEventListener("readystatechange", function() {
-                if (this.readyState === 4) {
-                    console.log(this.responseText);
-                }
-            });
-            xhr.setRequestHeader("Authorization", "Bearer pvqWZV2nmLOR5yPQkGBVel1Ewr0oM69KzgejxN7A");
-            xhr.send(data);
-        });
-        response_data.then(function(res) {
-            return res;
-        }).catch((reject) => {
-            console.log(reject);
-        });
-    }
-
     var __getWorkSpace = (access_token) =>{
         return new Promise((resolve, reject) => {
             var data = null;
@@ -123,7 +59,7 @@
                 }
             });
 
-            xhr.open("GET", "https://api.designbold.com/v3/document?owner=me&sort=modified&start=0&limit=3&target=my-design&loc=wp&folder_id=");
+            xhr.open("GET", "https://api.designbold.com/v3/document?owner=me&sort=modified&start=0&limit=20&target=my-design&loc=wp&folder_id=");
             xhr.setRequestHeader("Authorization", "Bearer " + access_token);
 
             xhr.send(data);
@@ -138,7 +74,6 @@
     var __loadIFrame = function() {
         var element = document.createElement('iframe'),
             src = DBWP5_localize.base_url + 'templates/media-view.php',
-            // src = 'https://www.designbold.com/workspace',
             namespace = __pluginCSSNamespace;
         element.setAttribute('id', (namespace) + '-wp');
         element.setAttribute('name', (namespace) + '-wp');
@@ -296,7 +231,7 @@
     };
 
     window.signUpComplete = function() {
-        location.reload();
+        DBWP5.layout_workspaceData();
     }
 
     DBWP5.add_media_css = () => {
@@ -321,6 +256,14 @@
         $.ajax(settings).done(function(response) {
             location.reload();
         });
+    }
+
+    DBWP5.get_designbold_frame_content = () => {
+        if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
+            return $('body .media-modal-content .media-frame-content');
+        }else{
+            return false;
+        }
     }
 
     DBWP5.init = function() {
@@ -430,77 +373,18 @@
      * @return {false} [ Not logged in ]
      */
     DBWP5.process_login = function(){
-        var access_token = DBWP5_localize.access_token;
-        var refresh_token = DBWP5_localize.refresh_token;
-        
-        if (typeof access_token == "undefined" || access_token == null || access_token == "") {
+        //  Get new access token
+        DBWP5.get_new_access_token()
+        .then((res) => {
+            var res_data = JSON.parse(res);
+            // Update/ insert user meta data
+            DBWP5.update_access_token_option( res_data['access_token'] );
+            DBWP5_localize.access_token = res_data['access_token'];
+            DBWP5.layout_workspaceData();
+        })
+        .catch((rej) => {
             DBWP5.layout_login();
-        } else {
-            //  Get new access token
-            DBWP5.get_new_access_token()
-            .then((res) => {
-                var res_data = JSON.parse(res);
-                // Update/ insert user meta data
-                DBWP5.update_access_token_option( res_data['access_token'] );
-                DBWP5_localize.access_token = res_data['access_token'];
-                DBWP5.layout_workspaceData();
-            })
-            .catch((rej) => {
-                DBWP5.layout_login();
-            });
-
-            // // Nếu token chưa hết hạn thì thực hiện login, get user design bình thường 
-            // // Nếu token hết hạn thì phải refresh lại token
-            // DBWP5.check_access_token_expires(access_token)
-            // .then((res) => {
-            //     // Status = 200 : success.
-            //     // console.log('Access token success.');
-            //     // DBWP5.access_token_status = res;
-            //     DBWP5.layout_workspaceData();
-            //     // return 1;
-            // })
-            // .catch(function(rej){
-            //     // Status = 204 : access token invalid.
-            //     // console.log('Access token invalid.');
-            //     if(rej == 204){
-            //         var refresh_status = DBWP5.refresh_access_token(refresh_token);
-            //     }else{
-            //         DBWP5.layout_login();
-            //     }
-            // });
-        }
-    }
-
-    /**
-     * Custome hook to check access token expires
-     * Status = 200 : success.
-     * Status = 204 : access token invalid.
-    */
-    DBWP5.check_access_token_expires = (access_token) => {
-        // access_token = '4qeZXOkwYmEoQBLjnVW71p8RGM9b6vNKDydJx5a1';
-        if (access_token !== null && access_token !== '') {
-            return new Promise((resolve, reject) => {
-                var data = "access_token=" + access_token;
-
-                var xhr = new XMLHttpRequest();
-                xhr.withCredentials = false;
-
-                xhr.addEventListener("readystatechange", function () {
-                    if (this.readyState === 4) {
-                        if(xhr.status == 200){
-                            resolve(this.status);
-                        }else{
-                            reject(this.status);
-                        }
-                    }
-                });
-
-                xhr.open("POST", "https://accounts.designbold.com/v2/oauth/tokeninfo");
-                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-                xhr.send(data);
-            });
-        }
+        });
     }
 
     /**
@@ -562,9 +446,12 @@
 
     DBWP5.get_new_access_token = () => {
         return new Promise ((resolve, reject) => {
-            var refresh_token_df = 'b0f99ceb3d596cb8e7152088548c41e981920c0bd92312047fd8e75b9eee440d';
             var app_key = DBWP5_localize.app_key;
             var app_redirect_url = DBWP5_localize.app_update_option;
+            var refresh_token = DBWP5_localize.refresh_token;
+            if(refresh_token == ''){
+                refresh_token = 'b0f99ceb3d596cb8e7152088548c41e981920c0bd92312047fd8e75b9eee440d';
+            }
 
             var data = "app_key=" + app_key + "&redirect_uri=" + app_redirect_url + "&grant_type=refresh_token&refresh_token=" + refresh_token;
             var xhr = new XMLHttpRequest();
@@ -573,9 +460,9 @@
             xhr.addEventListener("readystatechange", function () {
                 if (this.readyState === 4) {
                     if(xhr.status == 200){
-                        resolve(this.status);
+                        resolve(this.response);
                     }else{
-                        reject(this.status);
+                        reject(this.response);
                     }
                 }
             });
@@ -587,27 +474,45 @@
         });
     }
 
-    DBWP5.layout_workspaceData = function(data) {
-        var section = document.createElement('div');
-        section.className = 'section-items';
-        var inner = document.createElement('div');
-        inner.className = 'section-inner';
-        // for (let item in data) {
-        var html = '';
-        for (var i = 0; i < 10; i++) {
-            html += "<div class='item'>" + "<a href='' title='' class='a-thumb'>" + "<img src='https://cloud.designbold.com/resize/400x-/document/4n/A1/eQ/wx/AG/10/1/preview.jpg' alt='' class='thumb'>" + "</a>" + "</div>";
-        }
-        html += '</div>';
+    DBWP5.layout_workspaceData = () => {
+        __getWorkSpace(DBWP5_localize.access_token)
+        .then((res) => {
+            // var res_data = JSON.parse(res);
+            console.log(res);
+            var section = document.createElement('div');
+            section.className = 'designbold-items attachments-browser';
+            // for (let item in data) {
+            var html = '<div class="attachments ui-sortable ui-sortable-disabled">';
+            for (var i = 0; i < 10; i++) {
+                html += "<div class='item attachment'>";
+                html += "<div class='attachment-preview'>";
+                html += "<div class='thumbnail'>";
+                html += "<div class='centered'>";
+                html += "<img src='https://cloud.designbold.com/resize/400x-/document/4n/A1/eQ/wx/AG/10/1/preview.jpg' alt='' class='thumb'>";
+                html += "</div>";
+                html += "</div>";
+                html += "</div>";
+                html += "</div>";
+            }
+            html += '</div>';
+            html += '</div>';
 
-        section.insertAdjacentHTML('beforeend', html);
-        var designboldframe = $("#designbold-iframe");
-        // designboldframe.style.display = 'block';
-        designboldframe.appendChild(section);
-        // var data = get_data(0);
-        // var _template = _.template($('#designit-wordpress5-plugin_main_tmpl').html());
-        // $('body .media-modal-content .media-frame-content').html(_template({
-        //     list_item: data,
-        // }));
+            section.insertAdjacentHTML('beforeend', html);
+            if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
+                $('body .media-modal-content .media-frame-content').append(section);
+            }
+            // var designboldframe = $("#designit-wordpress5-plugin").append(section);
+            // designboldframe.style.display = 'block';
+            // designboldframe.append(section);
+            // var data = get_data(0);
+            // var _template = _.template($('#designit-wordpress5-plugin_main_tmpl').html());
+            // $('body .media-modal-content .media-frame-content').html(_template({
+            //     list_item: data,
+            // }));
+        })
+        .catch((rej) => {
+            console.log(rej);
+        })
     }
 
     DBWP5.layout_login = function() {

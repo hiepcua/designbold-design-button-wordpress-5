@@ -643,3 +643,20 @@ body.dbwp5.dbwp5-body-open iframe.dbwp5-iframe{
     transition-duration: 0.3s;
     text-decoration: unset;
 }
+
+
+@media only screen and (max-width: 390px){
+    .designbold-items .attachment{
+        width: 50%;
+    }
+}
+@media only screen and (max-width: 540px){
+    .designbold-items .attachment{
+        width: 33.33%;
+    }
+}
+@media only screen and (max-width: 640px){
+    .designbold-items .attachment{
+        width: 25%;
+    }
+}

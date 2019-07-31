@@ -189,7 +189,7 @@ function callback() {
 	$code = isset($_GET['code']) ? $_GET['code'] : '';
 	$status = isset($_GET['status']) ? $_GET['status'] : '';
 	$msg = isset($_GET['msg']) ? $_GET['msg'] : 400;
-	echo $code;
+	// echo $code;
 
 	if ($status == 200) {
 		$options_app_key = get_option(DB_NAME_APP_KEY) != '' ? get_option(DB_NAME_APP_KEY) : "";
@@ -214,16 +214,16 @@ function callback() {
 
 					// Action d? luu thông tin account user
 					do_action('dbwp5_save_account', $designbold_sdk->access_token, $designbold_sdk->refresh_token);
-
+					
 					echo '
                     <script type="text/javascript">
-                    window.location.replace("' . $siteUrl . '");
+                    DBWP5.layout_workspaceData();
                     </script>
                     ';
 				} else {
 					// Action d? luu thông tin account user
 					do_action('dbwp5_save_account', $designbold_sdk->access_token, $designbold_sdk->refresh_token);
-
+					
 					echo "
                     <script>
                     try {
@@ -234,7 +234,7 @@ function callback() {
                                 };
                             }
                             else {
-                                window.opener.location.reload(true);
+                                window.opener.signUpComplete();
                             }
                             window.focus();
                             window.close();
