@@ -11,6 +11,7 @@
     DBWP5.base_url = DBWP5_localize.base_url;
     DBWP5.media_css = DBWP5_localize.media_css;
     DBWP5.access_token_status = 0;
+    DBWP5.all_data = {};
 
     var __tabId = 'tab_dbwp5';
     var __iFrameElement = null;
@@ -364,6 +365,7 @@
         // __insertIFrameIntoTab();
         // __positionIFrame();
         // DBWP5.add_media_css();
+        $('body .media-modal-content .media-frame-content .attachments-browser').remove();
         DBWP5.process_login();
     };
 
@@ -477,42 +479,70 @@
     DBWP5.layout_workspaceData = () => {
         __getWorkSpace(DBWP5_localize.access_token)
         .then((res) => {
-            // var res_data = JSON.parse(res);
-            console.log(res);
-            var section = document.createElement('div');
-            section.className = 'designbold-items attachments-browser';
-            // for (let item in data) {
-            var html = '<div class="attachments ui-sortable ui-sortable-disabled">';
-            for (var i = 0; i < 10; i++) {
-                html += "<div class='item attachment'>";
-                html += "<div class='attachment-preview'>";
-                html += "<div class='thumbnail'>";
-                html += "<div class='centered'>";
-                html += "<img src='https://cloud.designbold.com/resize/400x-/document/4n/A1/eQ/wx/AG/10/1/preview.jpg' alt='' class='thumb'>";
-                html += "</div>";
-                html += "</div>";
-                html += "</div>";
-                html += "</div>";
-            }
-            html += '</div>';
-            html += '</div>';
-
-            section.insertAdjacentHTML('beforeend', html);
-            if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
-                $('body .media-modal-content .media-frame-content').append(section);
-            }
-            // var designboldframe = $("#designit-wordpress5-plugin").append(section);
-            // designboldframe.style.display = 'block';
-            // designboldframe.append(section);
-            // var data = get_data(0);
-            // var _template = _.template($('#designit-wordpress5-plugin_main_tmpl').html());
-            // $('body .media-modal-content .media-frame-content').html(_template({
-            //     list_item: data,
-            // }));
+            DBWP5.all_data = JSON.parse(res);
+            DBWP5.print_layout_workspaceData();
         })
         .catch((rej) => {
             console.log(rej);
         })
+    }
+
+    DBWP5.print_layout_workspaceData = () => {
+        var res_data = DBWP5.all_data.response;
+        var section = document.createElement('div');
+        section.className = 'designbold-items attachments-browser';
+        var html = '<div class="attachments ui-sortable ui-sortable-disabled">';
+        for (var i in res_data) {
+            html += "<div class='item attachment' data-id='"+res_data[i]._id+"' onclick='DBWP5.design_info(this)'>";
+            html += "<div class='attachment-preview'>";
+            html += "<div class='thumbnail'>";
+            html += "<div class='centered'>";
+            html += "<img src='"+res_data[i].thumb+"' alt='"+res_data[i].title+"' class='thumb'>";
+            html += "</div>";
+            html += "</div>";
+            html += "</div>";
+            html += "</div>";
+        }
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="media-sidebar"></div>';
+
+        var view_more = '<div class="btn btn-view-more">View more</div>';
+
+        section.insertAdjacentHTML('beforeend', html);
+        section.insertAdjacentHTML('beforeend', view_more);
+        if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
+            $('body .media-modal-content .media-frame-content').append(section);
+        }
+    }
+$(window).scroll(function() {
+            if($(window).scrollTop() == $(document).height() - $(window).height()) {
+                // ajax call get data from server and append to the div
+                alert(1);
+            }
+       });
+
+    DBWP5.design_info = (data) => {
+        var id = data.getAttribute("data-id");
+        var data = DBWP5.all_data.response;
+        html = '<div class="attachment-details">';
+        for(var i in data){
+            if(data[i]._id == id){
+                html += '<h2>'+data[i].title+'</h2>';
+                html += '<div class="attachment-info">';
+                html += '<div class="thumbnail thumbnail-image"><img src="'+data[i].thumb+'" alt="'+data[i].title+'"></div>';
+                html += '<div class="details design-info">';
+                html += '<div class="type">'+data[i].dimensions.title+'</div>';
+                html += '<div class="description">'+data[i].description+'</div>';
+                html += '<div class="view_link"><a href="'+data[i].link+'" title="'+data[i].title+'" target="_blank">View design</a></div>';
+                html += '<div class="edit_link"><a href="'+data[i].edit_link+'" title="'+data[i].title+'" target="_blank">Edit design</a></div>';
+                html += '</div>';
+                html += '</div>';
+            }
+        }
+        html += '</div>';
+        $('.attachment-details').remove();
+        $('.media-sidebar').append(html);
     }
 
     DBWP5.layout_login = function() {

@@ -643,11 +643,22 @@ body.dbwp5.dbwp5-body-open iframe.dbwp5-iframe{
     transition-duration: 0.3s;
     text-decoration: unset;
 }
+.attachment-info .details.design-info{
+    font-size: 14px;
+}
+.attachment-info .details.design-info .type{
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+.attachment-info .details.design-info .description, 
+.attachment-info .details.design-info .view_link, 
+.attachment-info .details.design-info .edit_link {
+    margin-bottom: 10px;
+}
 
-
-@media only screen and (max-width: 390px){
+@media only screen and (max-width: 640px){
     .designbold-items .attachment{
-        width: 50%;
+        width: 25%;
     }
 }
 @media only screen and (max-width: 540px){
@@ -655,8 +666,8 @@ body.dbwp5.dbwp5-body-open iframe.dbwp5-iframe{
         width: 33.33%;
     }
 }
-@media only screen and (max-width: 640px){
+@media only screen and (max-width: 390px){
     .designbold-items .attachment{
-        width: 25%;
+        width: 50%;
     }
 }
