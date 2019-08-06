@@ -40,7 +40,7 @@ define('DF_TOKEN', 'b0f99ceb3d596cb8e7152088548c41e981920c0bd92312047fd8e75b9eee
 if (defined('ALLOW_UNFILTERED_UPLOADS') === false) {
 	define('ALLOW_UNFILTERED_UPLOADS', true);
 }
-require_once plugin_dir_path( __FILE__ ) . 'templates/media-view.php';
+// require_once plugin_dir_path( __FILE__ ) . 'templates/media-view.php';
 
 /**
  * The code insert/ update app config.
@@ -87,6 +87,7 @@ function dbwp5_namespace_scripts_styles() {
 	wp_enqueue_script('dbwp5_underscore.js', $dir . 'assets/js/underscore-min.js');
 	wp_enqueue_script('dbwp5_underscore.js', $dir . 'assets/js/jquery.min.js');
 	wp_enqueue_script(DB_PLUGIN_NAME, $dir . 'assets/js/admin.js', array('jquery'), DESIGNBOLD_VERSION, true);
+	wp_enqueue_script(DB_PLUGIN_NAME.'_designbold-core', $dir . 'assets/js/designbold-core.js', array('jquery'), DESIGNBOLD_VERSION, true);
 	wp_localize_script(DB_PLUGIN_NAME, 'DBWP5_localize', array(
 		'base_url' => DB_URL,
 		'df_token' => DF_TOKEN,
@@ -95,7 +96,7 @@ function dbwp5_namespace_scripts_styles() {
 		'app_update_option' => admin_url('admin-ajax.php?action=' . DB_AFFIX . 'update-access-token'),
 		'app_redirect_url' => admin_url('admin-ajax.php?action=' . DB_AFFIX . 'process-login'),
 		'app_key' => get_option('dbwp5_option_app_key') != '' ? get_option('dbwp5_option_app_key') : "",
-		'media_css' => $dir . 'assets/css/media-view.css',
+		// 'media_css' => $dir . 'assets/css/media-view.css',
 	));
 }
 
@@ -244,8 +245,10 @@ function dbwp5_update_access_token() {
 	$res = dbwp5_update_option_user('dbwp5_access_token', $access_token);
 	if ($res) {
 		echo '1';
+		exit(0);
 	} else {
 		echo '2';
+		exit(0);
 	}
 }
 
@@ -329,4 +332,11 @@ function dbwp5_refresh_access_token($refresh_token = null) {
 
 	curl_close($curl);
 	return $status;
+}
+
+add_action('wp_ajax_nopriv_dbwp5-test', 'dbwp5_test');
+add_action('wp_ajax_dbwp5-test', 'dbwp5_test');
+function dbwp5_test() {
+	echo 'test';
+	die;
 }
