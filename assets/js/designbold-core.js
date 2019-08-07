@@ -1458,3 +1458,7 @@ var startDesignTool = function(image_src, param){
         window.open(designit_uri,'_blank');
     }
 };
+
+DBWP5.startDesignTool = (id) => {
+    console.log(id);
+}

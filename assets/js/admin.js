@@ -553,7 +553,7 @@ DBWP5.design_info = (data) => {
             html += '<div class="type">'+data[i].dimensions.title+'</div>';
             html += '<div class="description">'+data[i].description+'</div>';
             html += '<div class="view_link"><a href="'+data[i].link+'" title="'+data[i].title+'" target="_blank">View design</a></div>';
-            html += '<div class="edit_link"><a href="'+data[i].edit_link+'" title="'+data[i].title+'" target="_blank">Edit design</a></div>';
+            html += '<div class="edit_link"><a href="javascript:void(0)" title="'+data[i].title+'" onclick="startDesignTool('+data[i]._id+')">Edit design</a></div>';
             html += '</div>';
             html += '</div>';
         }
