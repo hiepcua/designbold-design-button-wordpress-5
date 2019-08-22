@@ -571,6 +571,7 @@
 }
 
 #modal_notification {
+    display: block;
     position: absolute;
     padding: 50px 20px 20px 20px;
     width: 600px;
@@ -655,7 +656,8 @@ body.dbwp5.dbwp5-body-open iframe.dbwp5-iframe{
 .attachment-info .details.design-info .edit_link {
     margin-bottom: 10px;
 }
-
+body.dbwp5 .media-frame-content{ bottom: 0; }
+body.dbwp5 .media-frame-toolbar{ display: none; }
 @media only screen and (max-width: 640px){
     .designbold-items .attachment{
         width: 25%;

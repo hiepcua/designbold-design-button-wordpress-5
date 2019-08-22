@@ -76,6 +76,12 @@ register_deactivation_hook(__FILE__, 'deactivate_designbold');
 
 add_action('admin_enqueue_scripts', 'dbwp5_namespace_scripts_styles');
 function dbwp5_namespace_scripts_styles() {
+	$post = get_post();
+	if($post !== null){
+		$post_id = $post->ID;
+	}else{
+		$post_id = 0;
+	}
 	$dir = plugin_dir_url(__FILE__);
 	$access_token = dbwp5_get_option_user('dbwp5_access_token');
 	$refresh_token = dbwp5_get_option_user('dbwp5_refresh_token');
@@ -93,9 +99,12 @@ function dbwp5_namespace_scripts_styles() {
 		'df_token' => DF_TOKEN,
 		'access_token' => $access_token,
 		'refresh_token' => $refresh_token,
+		'post_id' => $post_id,
 		'app_update_option' => admin_url('admin-ajax.php?action=' . DB_AFFIX . 'update-access-token'),
 		'app_redirect_url' => admin_url('admin-ajax.php?action=' . DB_AFFIX . 'process-login'),
 		'app_key' => get_option('dbwp5_option_app_key') != '' ? get_option('dbwp5_option_app_key') : "",
+		'siteurl' => get_option('siteurl'),
+		'ajax_get_option' => admin_url('admin-ajax.php?action=' . DB_AFFIX . 'ajax-get-option'),
 		// 'media_css' => $dir . 'assets/css/media-view.css',
 	));
 }
@@ -122,6 +131,16 @@ function dbwp5_logout() {
 	dbwp5_delete_option_user('dbwp5_info_user');
 	dbwp5_delete_option_user('dbwp5_access_token');
 	dbwp5_delete_option_user('dbwp5_refresh_token');
+}
+
+/**
+ * Ajax get option
+ * $option 	The name of option
+ */
+add_action('wp_ajax_nopriv_dbwp5-ajax-get-option', 'dbwp5_ajax_get_option');
+add_action('wp_ajax_dbwp5-ajax-get-option', 'dbwp5_ajax_get_option');
+function dbwp5_ajax_get_option($option) {
+	return get_option($option);
 }
 
 function dbwp5_get_option_user($option) {
@@ -334,9 +353,85 @@ function dbwp5_refresh_access_token($refresh_token = null) {
 	return $status;
 }
 
-add_action('wp_ajax_nopriv_dbwp5-test', 'dbwp5_test');
-add_action('wp_ajax_dbwp5-test', 'dbwp5_test');
-function dbwp5_test() {
-	echo 'test';
-	die;
+// Check image name extension
+function dbwp5_fileType($fileType = NULL){
+    $result = '';
+    $arr = array(
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'bmp' => 'image/bmp',
+        'tif' => 'image/tiff',
+        'svg' => 'image/svg+xml',
+    );
+
+    foreach ($arr as $key => $value) {
+        if($value == $fileType){
+            $result = $key;
+        }
+    }
+
+    return $result;
+}
+
+add_action('wp_ajax_nopriv_dbwp5_download_image', 'dbwp5_download_image');
+add_action('wp_ajax_dbwp5_download_image', 'dbwp5_download_image');
+function dbwp5_download_image(){
+	$flag = true;
+    $post_id = $_REQUEST['post_id'] ? (int)$_REQUEST['post_id'] : 0;
+    $image_url = esc_url_raw($_POST['image_url']);
+    $file_name = sanitize_text_field($_POST['image_name']);
+
+    if ( isset( $image_url ) && $image_url != '' && $file_name != '' && get_post_status($post_id)) {
+        $file_array = array();
+        $file_array['tmp_name'] = download_url($image_url);
+        
+        // Get info image
+        $fileType = getimagesize ($file_array['tmp_name']);
+        $image_type = $fileType[2];
+     
+        // Check file_array is an image or not
+        if(!in_array($image_type , array(IMAGETYPE_GIF , IMAGETYPE_JPEG ,IMAGETYPE_PNG , IMAGETYPE_BMP))){
+            $flag = false;
+        }
+
+        // Check image name extension
+        $ex = dbwp5_fileType($fileType['mime']);
+
+        if($ex != '' && $flag == true){
+            $file_array['name'] = $file_name . '.' . $ex;
+
+            if (is_wp_error($file_array['tmp_name'])) {
+                @unlink($file_array['tmp_name']);
+                return new WP_Error('grabfromurl', 'Could not download image from remote source');
+            }
+
+            // upload media
+            $attachmentId = media_handle_sideload($file_array, $post_id);
+
+            $obj_data = (object)[];
+
+            if( $attachmentId ){
+                // create the thumbnails
+                $attach_data = wp_generate_attachment_metadata($attachmentId, get_attached_file($attachmentId));
+
+                wp_update_attachment_metadata( $attachmentId,  $attach_data );
+                
+                // Get image info in media library after upload image on wordpress
+                $arr_info_image = wp_get_attachment_image_src($attachmentId, array('700', '600'), "", array( "class" => "img-responsive" ));
+
+                $arr_temp = array('url' => $arr_info_image[0], 'width' => $arr_info_image[1], 'height' => $arr_info_image[2], 'is_intermediate' => $arr_info_image[3]);
+                
+                $obj_data->image_info = $arr_temp;
+                $obj_data->post_id = $post_id;
+            }
+            
+            header("Content-type: application/json; charset=utf-8");
+            echo json_encode($obj_data);
+        }
+    }else{
+        $errors = array();
+        $id = 0;
+        return wp_iframe( 'media_upload_type_form', 'image', $errors, $id );
+    }
 }

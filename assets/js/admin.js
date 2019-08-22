@@ -1,3 +1,4 @@
+
 var DBWP5 = DBWP5 || {};
 DBWP5.numPage = 1;
 DBWP5.numPerPage = 20;
@@ -69,6 +70,30 @@ DBWP5.__getMediaModalContentElement = function() {
     var $mediaModalContent = $('body .media-modal-content:visible');
     return $mediaModalContent;
 };
+
+/**
+ * ajax_get_option Ajax get custom option
+ * @param  {string} name Name of custom option
+ * @return {string}      The option value
+ */
+DBWP5.ajax_get_option = (name) => {
+    var settings = {
+        "async": true,
+        "crossDomain": true,
+        "url": DBWP5_localize.ajax_get_option,
+        "method": "POST",
+        "data": {
+            'option_name': name,
+        },
+        "headers": {
+            "cache-control": "no-cache"
+        }
+    }
+    $.ajax(settings).done(function(response) {
+        console.log();
+        return response;
+    });
+}
 
 /**
  * Create iframe node
@@ -186,6 +211,15 @@ DBWP5.__addDesignBoldBodyClass = function() {
 };
 
 /**
+ * DBWP5.__removeDesignBoldBodyClass Default remove class dbwp5 to body element html
+ */
+DBWP5.__removeDesignBoldBodyClass = function() {
+    var namespace = __pluginCSSNamespace,
+        className = namespace;
+    $('body').removeClass(className);
+};
+
+/**
  * DBWP5.__hideIFrame Remove class to hiden iframe
  */
 DBWP5.__hideIFrame = function() {
@@ -286,15 +320,6 @@ window.signUpComplete = function() {
     DBWP5.layout_workspaceData();
 }
 
-// DBWP5.add_media_css = () => {
-//     var iframe = DBWP5.__getIFrameHTMLElement();
-//     var cssLink = document.createElement("link");
-//     cssLink.href = DBWP5_localize.media_css;  
-//     cssLink.rel = "stylesheet";  
-//     cssLink.type = "text/css"; 
-//     iframe.appendChild(cssLink); 
-// }
-
 DBWP5.logout = function() {
     var settings = {
         "async": true,
@@ -326,6 +351,18 @@ DBWP5.loadScript = function(url, success, error) {
     });
 };
 
+DBWP5.add_dbsdk_notification = function(){
+    var notify = '<div id="dbsdk_modal_notification" class="fadeIn">'
+    + '<div id="modal_notification" class="modal">'
+    + '<div class="db-loading">'
+    + '<p>Please wait download image...</p>'
+    + '<div class="inner-circles-loader large loading-icon"></div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+    document.body.insertAdjacentHTML('beforeend', notify);
+}
+
 var l10n = wp.media.view.l10n = typeof _wpMediaViewsL10n === 'undefined' ? {} : _wpMediaViewsL10n;
 wp.media.view.MediaFrame.Select.prototype.browseRouter = function(routerView) {
     routerView.set({
@@ -350,16 +387,18 @@ if (wp.media) {
      * Detect event click button Media Library
      */
     wp.media.view.Modal.prototype.on("open", function() {
-        DBWP5.__addDesignBoldBodyClass();
         DBWP5.__checkForDefaultTab();
         DBWP5.__addModalCloseListener();
+        DBWP5.add_dbsdk_notification();
     });
 
     $(wp.media).on('click', '.media-router a.media-menu-item', function(e) {
         var _this = $(this).attr('id');
         if(_this == __tabId){
+            DBWP5.__addDesignBoldBodyClass();
             DBWP5.__showIFrame();
         }else{
+            DBWP5.__removeDesignBoldBodyClass();
             DBWP5.__hideIFrame();
         }
     });
@@ -397,12 +436,6 @@ DBWP5.update_access_token_option = (value) => {
  * [DBWP5.__showIFrame Add iframe to body]
  */
 DBWP5.__showIFrame = function() {
-    // var namespace = __pluginCSSNamespace,
-        // className = (namespace) + '-body-open';
-    // $('body').addClass(className);
-    // DBWP5.__insertIFrameIntoTab();
-    // DBWP5.__positionIFrame();
-    // DBWP5.add_media_css();
     $('body .media-modal-content .media-frame-content .attachments-browser').remove();
     $('body .media-modal-content .media-frame-content .uploader-inline').remove();
     DBWP5.process_login();
@@ -504,10 +537,7 @@ DBWP5.print_layout_workspaceData = () => {
     html += '</div>';
     html += '<div class="media-sidebar"></div>';
 
-    var view_more = '<div class="btn btn-view-more">View more</div>';
-
     section.insertAdjacentHTML('beforeend', html);
-    section.insertAdjacentHTML('beforeend', view_more);
     if ($('body').find('.media-modal-content .media-router a.media-menu-item.active')[0].innerText == "DesignBold") {
         $('body .media-modal-content .media-frame-content').append(section);
     }
@@ -543,6 +573,7 @@ DBWP5.design_info = (data) => {
     data.classList.add('selected', 'details');
     var id = data.getAttribute("data-id");
     var data = DBWP5.all_data;
+    // console.log(data);
     html = '<div class="attachment-details">';
     for(var i in data){
         if(data[i]._id == id){
@@ -553,7 +584,11 @@ DBWP5.design_info = (data) => {
             html += '<div class="type">'+data[i].dimensions.title+'</div>';
             html += '<div class="description">'+data[i].description+'</div>';
             html += '<div class="view_link"><a href="'+data[i].link+'" title="'+data[i].title+'" target="_blank">View design</a></div>';
-            html += '<div class="edit_link"><a href="javascript:void(0)" title="'+data[i].title+'" onclick="startDesignTool('+data[i]._id+')">Edit design</a></div>';
+            html += '<div class="edit_link"><a href="javascript:void(0)" title="'+data[i].title+'" class="db-edit-design"';
+            html += ' data-id="'+data[i]._id+'" data-edit-link="'+data[i].edit_link+'" onclick="initDesignTool(this)">Edit design</a></div>';
+            html += '<div class="use_design">';
+            html += '<button type="button" data-db-version="'+data[i].version+'" data-db-id="'+data[i]._id+'" class="button media-button button-primary button-large media-button-select" onclick="DBWP5_db_api_free_render(this)">Save to library</button>';
+            html += '</div>';
             html += '</div>';
             html += '</div>';
         }
@@ -573,3 +608,67 @@ DBWP5.layout_login = function() {
 }
 
 DBWP5.init();
+
+DBWP5.accessProtectedResource = (url, method_opt) => {
+    return new Promise((resolve, reject) => {
+        var data = null;
+        var xhr = new XMLHttpRequest();
+        var accessToken = DBWP5_localize.access_token;
+        xhr.withCredentials = false;
+        xhr.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+                if(xhr.status == 200){
+                    resolve(this.response);
+                }else{
+                    reject(this.statusText);
+                }
+            }
+        });
+
+        xhr.open(method_opt, url);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.setRequestHeader("Authorization", "Bearer " + accessToken);
+        xhr.send(data);
+    })
+}
+
+/**
+ * db_api_free_render Using API to download design
+ * Return download url design
+ */
+async function DBWP5_db_api_free_render(attr){
+    var flag = true;
+    var version = attr.getAttribute("data-db-version");;
+    var id = attr.getAttribute("data-db-id");
+    var d = new Date();
+    var n = d.getMilliseconds();
+    var name = id + n;
+    var url = "https://api.designbold.com/v3/document/"+id+"/render?name="+name+"&type=png&crop_bleed=0&quality=high&pages=picked&mode=download&wm=0&session=&beta=0&picked=%5B1%5D";
+
+    // Get pk parameter
+    var result1 = await DBWP5.accessProtectedResource(url, "GET");
+    var _result1 = JSON.parse(result1);
+    var pk = _result1.response.pk;
+
+    var i = 0;
+    var downloadUrl = '';
+    var document_id = '';
+    do{
+        i++;
+        // Get download url
+        let result2 = await DBWP5.accessProtectedResource(url+'&pk='+pk, "GET");
+        let _result2 = JSON.parse(result2);
+
+        if(_result2.response !== undefined && _result2.response.downloadUrl !== undefined){
+            downloadUrl = _result2.response.downloadUrl;
+            document_id = _result2.response.document_id;
+        }
+    }while(downloadUrl == '' && i <= 5);
+
+    var resultUrl = encodeURIComponent(downloadUrl);
+    var url  = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
+    var params = "post_id=" + DBWP5_localize.post_id + "&image_url=" + resultUrl + "&image_name=" + document_id;
+    var url = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
+    DBSDK.uploadImage(url, params, "POST");
+    // return downloadUrl;
+}
