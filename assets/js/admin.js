@@ -587,7 +587,8 @@ DBWP5.design_info = (data) => {
             html += '<div class="edit_link"><a href="javascript:void(0)" title="'+data[i].title+'" class="db-edit-design"';
             html += ' data-id="'+data[i]._id+'" data-edit-link="'+data[i].edit_link+'" onclick="initDesignTool(this)">Edit design</a></div>';
             html += '<div class="use_design">';
-            html += '<button type="button" data-db-version="'+data[i].version+'" data-db-id="'+data[i]._id+'" class="button media-button button-primary button-large media-button-select" onclick="DBWP5_db_api_free_render(this)">Save to library</button>';
+            html += '<button type="button" data-db-version="'+data[i].version+'" data-db-id="'+data[i]._id+'" class="button media-button button-primary button-large media-button-select"'; 
+            html += 'onclick="DBWP5_db_api_free_render(this)">Save to library</button>';
             html += '</div>';
             html += '</div>';
             html += '</div>';
@@ -609,8 +610,15 @@ DBWP5.layout_login = function() {
 
 DBWP5.init();
 
-DBWP5.accessProtectedResource = (url, method_opt) => {
-    return new Promise((resolve, reject) => {
+// Chưa có pk
+DBWP5_db_api_free_render = (attr) => {
+    var id = attr.getAttribute("data-db-id");
+    var d = new Date();
+    var n = d.getMilliseconds();
+    var name = id + n;
+    var url = "https://api.designbold.com/v3/document/"+id+"/render?name="+name+"&type=png&crop_bleed=0&quality=high&pages=picked&mode=download&wm=0&session=&beta=0&picked=%5B1%5D";
+
+    var result = new Promise((resolve, reject) => {
         var data = null;
         var xhr = new XMLHttpRequest();
         var accessToken = DBWP5_localize.access_token;
@@ -618,57 +626,169 @@ DBWP5.accessProtectedResource = (url, method_opt) => {
         xhr.addEventListener("readystatechange", function () {
             if (this.readyState === 4) {
                 if(xhr.status == 200){
-                    resolve(this.response);
+                    var _result = JSON.parse(this.response);
+                    _result.response._id = id;
+                    _result.response._name = name;
+                    resolve(_result);
                 }else{
                     reject(this.statusText);
                 }
             }
         });
 
-        xhr.open(method_opt, url);
+        xhr.open("GET", url);
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         xhr.setRequestHeader("Authorization", "Bearer " + accessToken);
         xhr.send(data);
     })
+
+    result.then((res) => {
+        console.log('2222');
+        var _pk = res.response.pk;
+        var _id = res.response._id;
+        var name = res.response._name;
+        var url = "https://api.designbold.com/v3/document/"+id+"/render?name="+name+"&type=png&crop_bleed=0&quality=high&pages=picked&mode=download&wm=0&session=&beta=0&picked=%5B1%5D&pk="+_pk;
+        var render_data = DBWP5_db_api_check_render(url);
+        if(render_data.response !== undefined && render_data.response.downloadUrl !== undefined){
+            // downloadUrl = render_data.response.downloadUrl;
+            // document_id = render_data.response.document_id;
+            console.log('render_data = '+ render_data);
+        }else{
+            console.log('render_data error');
+            // do{
+            //     let _result2 = DBWP5_db_api_check_render(_url);
+            //     i++;
+            //     console.log(i);
+            // }while(downloadUrl == '' && i <= 5);
+        }
+    })
+    .catch((rej) => {
+        console.log('error 11111');
+    });
+}
+
+// đã có pk
+function DBWP5_db_api_check_render(url){
+    var render_data = new Promise((resolve, reject) => {
+        var data = null;
+        var _url = url;
+        var xhr = new XMLHttpRequest();
+        var accessToken = DBWP5_localize.access_token;
+        xhr.withCredentials = false;
+        xhr.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+                if(xhr.status == 200){
+                    resolve(this.response);
+                    // var result = this.response;
+                    // var downloadUrl = '';
+                    // var document_id = '';
+                    // if(result.response !== undefined && result.response.downloadUrl !== undefined){
+                    //     downloadUrl = result.response.downloadUrl;
+                    //     document_id = result.response.document_id;
+                    //     resolve(this.response);
+                    // }else{
+                    //     do{
+                    //         let _result2 = DBWP5_db_api_check_render(_url);
+                    //         i++;
+                    //         console.log(i);
+                    //     }while(downloadUrl == '' && i <= 5);
+                    // }
+                }else if(xhr.status == 406){
+                    console.log('333');
+                }else{
+                    reject(this.statusText);
+                    // if(xhr.status == 406){
+                    //     DBWP5_db_api_check_render(_url);
+                    // }else{
+                    //     reject(this.statusText);
+                    // }
+                }
+            }
+        });
+
+        xhr.open("GET", url);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.setRequestHeader("Authorization", "Bearer " + accessToken);
+        xhr.send(data);
+    })
+
+    render_data.then((res) => {
+        console.log('1111');
+        console.log(res);
+    })
+    .catch((rej) => {
+        console.log('2222');
+    });
+
+    // var i = 0;
+    // var url_render = url;
+    // var downloadUrl = '';
+    // var document_id = '';
+    // result.then((res) => {
+    //     let _result = JSON.parse(res);
+    //     if(_result.response !== undefined && _result.response.downloadUrl !== undefined){
+    //         downloadUrl = _result.response.downloadUrl;
+    //         document_id = _result.response.document_id;
+    //         // var resultUrl = encodeURIComponent(downloadUrl);
+    //         // var url  = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
+    //         // var params = "post_id=" + DBWP5_localize.post_id + "&image_url=" + resultUrl + "&image_name=" + document_id;
+    //         // var url = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
+    //         // DBSDK.uploadImage(url, params, "POST");
+    //         // return downloadUrl;
+    //     }else{
+    //         do{
+    //             let _result2 = DBWP5_db_api_check_render(_url);
+    //             i++;
+    //             console.log(i);
+    //             if(_result2.response !== undefined && _result2.response.downloadUrl !== undefined){
+    //                 downloadUrl = _result2.response.downloadUrl;
+    //                 document_id = _result2.response.document_id;
+    //             }
+    //         }while(downloadUrl == '' && i <= 5);
+    //     }
+    //     console.log(downloadUrl);
+    // })
+    // .catch((rej) => {
+    //     console.log('Error download.');
+    // });
 }
 
 /**
  * db_api_free_render Using API to download design
  * Return download url design
  */
-async function DBWP5_db_api_free_render(attr){
-    var flag = true;
-    var version = attr.getAttribute("data-db-version");;
-    var id = attr.getAttribute("data-db-id");
-    var d = new Date();
-    var n = d.getMilliseconds();
-    var name = id + n;
-    var url = "https://api.designbold.com/v3/document/"+id+"/render?name="+name+"&type=png&crop_bleed=0&quality=high&pages=picked&mode=download&wm=0&session=&beta=0&picked=%5B1%5D";
+// async function DBWP5_db_api_free_render(attr){
+//     var flag = true;
+//     var version = attr.getAttribute("data-db-version");;
+//     var id = attr.getAttribute("data-db-id");
+//     var d = new Date();
+//     var n = d.getMilliseconds();
+//     var name = id + n;
+//     var url = "https://api.designbold.com/v3/document/"+id+"/render?name="+name+"&type=png&crop_bleed=0&quality=high&pages=picked&mode=download&wm=0&session=&beta=0&picked=%5B1%5D";
 
-    // Get pk parameter
-    var result1 = await DBWP5.accessProtectedResource(url, "GET");
-    var _result1 = JSON.parse(result1);
-    var pk = _result1.response.pk;
+//     var result1 = await DBWP5.accessProtectedResource(url, "GET");
+//     var _result1 = JSON.parse(result1);
+//     var pk = _result1.response.pk;
 
-    var i = 0;
-    var downloadUrl = '';
-    var document_id = '';
-    do{
-        i++;
-        // Get download url
-        let result2 = await DBWP5.accessProtectedResource(url+'&pk='+pk, "GET");
-        let _result2 = JSON.parse(result2);
+//     var i = 0;
+//     var downloadUrl = '';
+//     var document_id = '';
+//     do{
+//         i++;
+//         // Get download url
+//         let result2 = await DBWP5.accessProtectedResource(url+'&pk='+pk, "GET");
+//         let _result2 = JSON.parse(result2);
 
-        if(_result2.response !== undefined && _result2.response.downloadUrl !== undefined){
-            downloadUrl = _result2.response.downloadUrl;
-            document_id = _result2.response.document_id;
-        }
-    }while(downloadUrl == '' && i <= 5);
+//         if(_result2.response !== undefined && _result2.response.downloadUrl !== undefined){
+//             downloadUrl = _result2.response.downloadUrl;
+//             document_id = _result2.response.document_id;
+//         }
+//     }while(downloadUrl == '' && i <= 5);
 
-    var resultUrl = encodeURIComponent(downloadUrl);
-    var url  = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
-    var params = "post_id=" + DBWP5_localize.post_id + "&image_url=" + resultUrl + "&image_name=" + document_id;
-    var url = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
-    DBSDK.uploadImage(url, params, "POST");
-    // return downloadUrl;
-}
+//     var resultUrl = encodeURIComponent(downloadUrl);
+//     var url  = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
+//     var params = "post_id=" + DBWP5_localize.post_id + "&image_url=" + resultUrl + "&image_name=" + document_id;
+//     var url = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
+//     DBSDK.uploadImage(url, params, "POST");
+//     // return downloadUrl;
+// }
