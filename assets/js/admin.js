@@ -643,30 +643,18 @@ DBWP5_db_api_free_render = (attr) => {
     })
 
     result.then((res) => {
-        console.log('2222');
         var _pk = res.response.pk;
         var _id = res.response._id;
         var name = res.response._name;
         var url = "https://api.designbold.com/v3/document/"+id+"/render?name="+name+"&type=png&crop_bleed=0&quality=high&pages=picked&mode=download&wm=0&session=&beta=0&picked=%5B1%5D&pk="+_pk;
-        var render_data = DBWP5_db_api_check_render(url);
-        if(render_data.response !== undefined && render_data.response.downloadUrl !== undefined){
-            // downloadUrl = render_data.response.downloadUrl;
-            // document_id = render_data.response.document_id;
-            console.log('render_data = '+ render_data);
-        }else{
-            console.log('render_data error');
-            // do{
-            //     let _result2 = DBWP5_db_api_check_render(_url);
-            //     i++;
-            //     console.log(i);
-            // }while(downloadUrl == '' && i <= 5);
-        }
+        DBWP5_db_api_check_render(url);
     })
     .catch((rej) => {
-        console.log('error 11111');
+        console.log('error DBWP5_db_api_free_render');
     });
 }
 
+var DBWP5_i = 0;
 // đã có pk
 function DBWP5_db_api_check_render(url){
     var render_data = new Promise((resolve, reject) => {
@@ -679,29 +667,11 @@ function DBWP5_db_api_check_render(url){
             if (this.readyState === 4) {
                 if(xhr.status == 200){
                     resolve(this.response);
-                    // var result = this.response;
-                    // var downloadUrl = '';
-                    // var document_id = '';
-                    // if(result.response !== undefined && result.response.downloadUrl !== undefined){
-                    //     downloadUrl = result.response.downloadUrl;
-                    //     document_id = result.response.document_id;
-                    //     resolve(this.response);
-                    // }else{
-                    //     do{
-                    //         let _result2 = DBWP5_db_api_check_render(_url);
-                    //         i++;
-                    //         console.log(i);
-                    //     }while(downloadUrl == '' && i <= 5);
-                    // }
                 }else if(xhr.status == 406){
-                    console.log('333');
+                    let cur_url = xhr.responseURL;
+                    DBWP5_db_api_check_render(cur_url);
                 }else{
                     reject(this.statusText);
-                    // if(xhr.status == 406){
-                    //     DBWP5_db_api_check_render(_url);
-                    // }else{
-                    //     reject(this.statusText);
-                    // }
                 }
             }
         });
@@ -713,11 +683,32 @@ function DBWP5_db_api_check_render(url){
     })
 
     render_data.then((res) => {
-        console.log('1111');
-        console.log(res);
+        var result = JSON.parse(res);
+        var downloadUrl = '';
+        var document_id = '';
+        if(result.response !== undefined && result.response.downloadUrl !== undefined){
+            downloadUrl = result.response.downloadUrl;
+            document_id = result.response.document_id;
+
+            // var resultUrl = encodeURIComponent(downloadUrl);
+            // var url  = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
+            // var params = "post_id=" + DBWP5_localize.post_id + "&image_url=" + resultUrl + "&image_name=" + document_id;
+            // var url = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
+            // DBSDK.uploadImage(url, params, "POST");
+
+        }else{
+            do{
+                let _result2 = DBWP5_db_api_check_render(_url);
+                DBWP5_i++;
+                console.log(DBWP5_i);
+            }while(downloadUrl == '' && DBWP5_i < 5);
+
+            console.log('error DBWP5_db_api_check_render');
+            return JSON.parse(res);
+        }
     })
     .catch((rej) => {
-        console.log('2222');
+        console.log(rej);
     });
 
     // var i = 0;
