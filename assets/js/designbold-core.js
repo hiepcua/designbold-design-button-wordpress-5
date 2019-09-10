@@ -24,8 +24,7 @@ window.DBSDK_Cfg = {
         // do something with design image URL, which is only accessible for 24 hours
         resultUrl = encodeURIComponent(resultUrl);
         var url  = DBWP5_localize.siteurl + "/wp-admin/admin-ajax.php?action=dbwp5_download_image";
-        var params = "image_url=" + resultUrl + "&image_name=" + document_id;
-        // var params = "post_id=" + WPURLS.post_id + "&image_url=" + resultUrl + "&image_name=" + document_id;
+        var params = "post_id=" + DBWP5_localize.post_id + "&image_url=" + resultUrl + "&image_name=" + document_id;
         DBSDK.uploadImage(url, params, "POST");
     },
 };
@@ -525,6 +524,32 @@ window.DBSDK = {
         'error' : ""
     };
 
+    DBSDK.loadScript = function(url, success, error) {
+	    $.ajax({
+	        cache: true,
+	        dataType: 'script',
+	        error: error,
+	        success: success,
+	        timeout: '5000',
+	        url: url
+	    });
+	};
+
+	/* Refresh media tab content */
+	DBSDK.switchAndReload = function() {
+		// get wp outside iframe
+		var wp = parent.wp;
+
+		// switch tabs (required for the code below)
+		wp.media.frame.setState('insert');
+
+		// refresh
+		if( wp.media.frame.content.get() !== null) {
+			wp.media.frame.content.get().collection.props.set({ignore: (+ new Date())});
+			wp.media.frame.content.get().options.selection.reset();
+		}
+	};
+
     DBSDK.uploadImage = function(url, params, method){
         var xhr = new XMLHttpRequest();
         xhr.open(method , url, true);
@@ -535,6 +560,7 @@ window.DBSDK = {
             if(this.readyState == XMLHttpRequest.DONE && this.status == 200) {
             	// Upload xong thì phải show tab media
             	DBSDK.$('#dbsdk_modal_notification').style.display = 'none';
+            	DBSDK.switchAndReload();
             	var media_tab = $(".media-modal-content .media-frame-router .media-router a.media-menu-item:contains('Media Library')");
             	media_tab.click();
             }
@@ -1004,15 +1030,7 @@ window.DBSDK = {
         if (overlay) {
             overlay.style.display = 'block';
         }else{
-            var modal = '<div id="dbsdk_modal_notification" class="fadeIn">'
-            + '<div id="modal_notification" class="modal">'
-            + '<div class="db-loading">'
-            + '<p>Please wait download image...</p>'
-            + '<div class="inner-circles-loader large loading-icon"></div>'
-            + '</div>'
-            + '</div>'
-            + '</div>';
-            let overlay = modal + '<div class="db-overlay animated fadeIn" style="display: block;"></div>';
+            let overlay = '<div class="db-overlay animated fadeIn" style="display: block;"></div>';
             doc.body.insertAdjacentHTML('beforeend', overlay);
         }
 
