@@ -40,7 +40,6 @@ define('DF_TOKEN', 'b0f99ceb3d596cb8e7152088548c41e981920c0bd92312047fd8e75b9eee
 if (defined('ALLOW_UNFILTERED_UPLOADS') === false) {
 	define('ALLOW_UNFILTERED_UPLOADS', true);
 }
-// require_once plugin_dir_path( __FILE__ ) . 'templates/media-view.php';
 
 /**
  * The code insert/ update app config.
@@ -58,7 +57,6 @@ do_action('dbwp5_app_config');
  */
 function activate_designbold() {
 	require_once plugin_dir_path(__FILE__) . 'includes/class-designbold-activator.php';
-	require_once plugin_dir_path(__FILE__) . 'templates/media-view.php';
 	DesignBold_Activator::activate();
 }
 
@@ -73,6 +71,64 @@ function deactivate_designbold() {
 
 register_activation_hook(__FILE__, 'activate_designbold');
 register_deactivation_hook(__FILE__, 'deactivate_designbold');
+
+/*// Add item to admin menu
+add_action('admin_menu', 'dbwp5_add_admin_menu');
+function dbwp5_add_admin_menu() {
+	//create new top-level menu
+	$icon = DB_URL . '/assets/images/16.png';
+	add_menu_page('DesignBold option', 'DesignBold menu', 'manage_options', 'designbold-menu', 'dbwp5_plugin_setting_page', $icon);
+}
+
+// Generate html page option
+function dbwp5_plugin_setting_page() {
+	?>
+	<div class="wrap">
+		<h1>DesignBold Option</h1>
+		<p>App key and app secret must be required to plugin work. If one of 2 fields be empty then plugin will not work.</p>
+		<?php settings_errors();?>
+		<!-- Phải chạy vào options.php đây là mặc định của wordpress :( -->
+		<form method="post" action="<?php echo admin_url('admin-ajax.php?action=dbwp5-save-option'); ?>">
+			<table class="form-table">
+				<tr class="form-field form-required">
+					<th scope="row">App key <span class="description">(required)</span></th>
+					<td><input type="text" name="dbwp5_option_app_key" value="<?php echo esc_attr(get_option('dbwp5_option_app_key')); ?>" placeholder="app key" /></td>
+				</tr>
+				<tr class="form-field form-required">
+					<th scope="row">App secret <span class="description">(required)</span></th>
+					<td><input type="text" name="dbwp5_option_app_secret" value="<?php echo esc_attr(get_option('dbwp5_option_app_secret')); ?>" placeholder="app secret" /></td>
+				</tr>
+			</table>
+
+			<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"  /></p>
+
+		</form>
+	</div>
+<?php }
+
+// Call update option function
+add_action('wp_ajax_nopriv_dbwp5-save-option', 'dbwp5_save_option');
+add_action('wp_ajax_dbwp5-save-option', 'dbwp5_save_option');
+function dbwp5_save_option() {
+	if (isset($_POST['submit'])) {
+		$app_key =
+		isset($_POST['dbwp5_option_app_key']) ? sanitize_text_field($_POST['dbwp5_option_app_key']) : "";
+
+		$app_secret =
+		isset($_POST['dbwp5_option_app_secret']) ? sanitize_text_field($_POST['dbwp5_option_app_secret']) : "";
+
+		add_action('alter_item', 'dbwp5_update_option', 10, 2);
+		function dbwp5_update_option($app_key, $app_secret) {
+			update_option('dbwp5_option_app_key', $app_key, 'yes');
+			update_option('dbwp5_option_app_secret', $app_secret, 'yes');
+		}
+
+		do_action('alter_item', $app_key, $app_secret);
+		// redirect when complete
+		wp_safe_redirect('admin.php?page=designbold-menu');
+	}
+	exit(0);
+}*/
 
 add_action('admin_enqueue_scripts', 'dbwp5_namespace_scripts_styles');
 function dbwp5_namespace_scripts_styles() {
@@ -105,7 +161,7 @@ function dbwp5_namespace_scripts_styles() {
 		'app_key' => get_option('dbwp5_option_app_key') != '' ? get_option('dbwp5_option_app_key') : "",
 		'siteurl' => get_option('siteurl'),
 		'ajax_get_option' => admin_url('admin-ajax.php?action=' . DB_AFFIX . 'ajax-get-option'),
-		// 'media_css' => $dir . 'assets/css/media-view.css',
+		'ajax_logout_url' => admin_url('admin-ajax.php?action=' . DB_AFFIX . 'process-logout'),
 	));
 }
 
@@ -435,3 +491,8 @@ function dbwp5_download_image(){
         return wp_iframe( 'media_upload_type_form', 'image', $errors, $id );
     }
 }
+
+function dbwp5_autoload_media() {
+	echo file_get_contents(plugin_dir_path(__FILE__) . "templates/media-view.php");
+}
+add_action( 'admin_head', 'dbwp5_autoload_media' );

@@ -561,7 +561,7 @@ window.DBSDK = {
             	// Upload xong thì phải show tab media
             	DBSDK.$('#dbsdk_modal_notification').style.display = 'none';
             	DBSDK.switchAndReload();
-            	var media_tab = $(".media-modal-content .media-frame-router .media-router a.media-menu-item:contains('Media Library')");
+            	var media_tab = $(".media-modal-content .media-frame-router .media-router a.media-menu-item:nth-child(2)");
             	media_tab.click();
             }
         }

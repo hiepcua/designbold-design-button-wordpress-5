@@ -217,7 +217,7 @@ function callback() {
 					
 					echo '
                     <script type="text/javascript">
-                    DBWP5.layout_workspaceData();
+                    window.opener.signUpComplete();
                     </script>
                     ';
 				} else {
@@ -226,12 +226,12 @@ function callback() {
 					
 					echo "
                     <script>
+                    var access_token = '".$designbold_sdk->access_token."';
+                    var refresh_token = '".$designbold_sdk->refresh_token."';
                     try {
                         if (window.opener !== null) {
                             if (typeof window.opener.signUpComplete === 'function') {
-                                window.onunload = function () {
-                                    window.opener.signUpComplete();
-                                };
+                                window.opener.signUpComplete(access_token,refresh_token);
                             }
                             else {
                                 window.opener.signUpComplete();

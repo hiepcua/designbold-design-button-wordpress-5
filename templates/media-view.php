@@ -1,4 +1,3 @@
-<!-- <link rel="stylesheet" type="text/css" href="assets/css/media-view.css"> -->
 <div id="dbwp5_wrap_content">
 	<div id="dbwp5_content" class="content"></div>
 </div>
